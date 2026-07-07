@@ -40,6 +40,28 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { FREE_ITEM_LIMIT } from "@/lib/entitlements";
 
+// ── Decorative closet hanger ──────────────────────────────────────────────────
+// Rendered in wardrobe.tsx at z=21 (above the z=20 rod overlay) so it appears
+// to hang from the rod without being clipped by the ClosetRow overflow:hidden.
+function ClosetHangerIcon({ width }: { width: number }) {
+  const h = Math.round(width * 0.68);
+  return (
+    <svg width={width} height={h} viewBox="0 0 32 22" fill="none" aria-hidden="true"
+      style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.22))" }}>
+      {/* Hook */}
+      <path d="M16 1.5 C18.4 1 20 2.8 18.2 4.8 C17.4 5.6 16 5.8 15 5.2"
+        stroke="#C8961A" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      {/* Shoulders */}
+      <path d="M15 5.2 C15 5.2 30 12 31 18 L1 18 C2 12 15 5.2 16 5.2 Z"
+        stroke="#C8961A" strokeWidth="1.9" strokeLinejoin="round"
+        fill="rgba(200,150,26,0.10)" />
+      {/* Bar */}
+      <line x1="1" y1="18" x2="31" y2="18"
+        stroke="#C8961A" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RowKey   = "tops" | "bottoms" | "shoes";
 type Category = "tops" | "bottoms" | "shoes" | "accessories" | "outerwear" | "dresses";
@@ -415,6 +437,41 @@ export default function WardrobePage() {
                     borderRadius: 20,
                   }}
                 />
+
+                {/* Decorative hangers — left & right slots only, z=21 so they
+                    sit above the z=20 rod overlay and below modals (z=30+).
+                    Only shown when there are items to hang. */}
+                {items.length > 0 && (() => {
+                  const slotW   = pW(ir, LM.doorR - LM.doorL) / 3;
+                  const hW      = Math.round(slotW * 0.36);
+                  const hH      = Math.round(hW * 0.68);
+                  // Hook sits ~20% from top of SVG — position so hook touches rod
+                  const hTop    = carTop - Math.round(hH * 0.22);
+                  return (
+                    <>
+                      {/* Left slot hanger */}
+                      <div aria-hidden="true" style={{
+                        position: "absolute",
+                        top:  hTop,
+                        left: carLeft + Math.round(slotW * 0.5 - hW / 2),
+                        width: hW, height: hH,
+                        zIndex: 21, pointerEvents: "none",
+                      }}>
+                        <ClosetHangerIcon width={hW} />
+                      </div>
+                      {/* Right slot hanger */}
+                      <div aria-hidden="true" style={{
+                        position: "absolute",
+                        top:  hTop,
+                        left: carLeft + Math.round(slotW * 2.5 - hW / 2),
+                        width: hW, height: hH,
+                        zIndex: 21, pointerEvents: "none",
+                      }}>
+                        <ClosetHangerIcon width={hW} />
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* ClosetRow — clothing photos, guaranteed to start below button */}
                 {items.length > 0 && (
