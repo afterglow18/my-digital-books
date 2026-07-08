@@ -152,7 +152,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated: () => v
   }, [resetToken, newPassword, confirmPassword]);
 
   const titles: Record<Mode, string> = {
-    signin: "Welcome back ✨",
+    signin: "Welcome Back ✨",
     signup: "Create your closet ✨",
     forgot: "Reset password 🔑",
     "forgot-sent": "Check your email 📬",
@@ -169,16 +169,14 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated: () => v
         ref={containerRef}
         style={{ width: "100%", maxWidth: 448, height: "calc(100dvh - 90px)", position: "relative", overflow: "hidden", background: "#F0C030" }}
       >
-        {/* Background wardrobe image — blurred */}
+        {/* Background wardrobe image */}
         {ir && (
           <img src="/auth-bg.jpg" alt="" draggable={false}
             style={{
               position: "absolute",
-              top: ir.top - 12, left: ir.left - 12,
-              width: ir.width + 24, height: ir.height + 24,
+              top: ir.top, left: ir.left,
+              width: ir.width, height: ir.height,
               display: "block", userSelect: "none", pointerEvents: "none",
-              filter: "blur(10px)",
-              transform: "scale(1.02)",
             }}
           />
         )}
