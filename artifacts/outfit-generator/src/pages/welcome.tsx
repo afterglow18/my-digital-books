@@ -23,8 +23,8 @@ import { motion } from "framer-motion";
 const IMG_W = 941;
 const IMG_H = 1672;
 
-// Fractional y of the rug centre within the closet image.
-const RUG_CENTRE_F = 0.935;
+// Fractional y of the button within the closet image.
+const RUG_CENTRE_F = 0.56;
 
 // Animation duration in ms — fallback fires after this + a small buffer.
 const ANIM_MS = 1250;
