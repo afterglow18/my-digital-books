@@ -18,16 +18,14 @@ import { FREE_OUTFIT_LIMIT } from "@/lib/entitlements";
 import { WardrobePickerSheet } from "@/components/clothing/WardrobePickerSheet";
 import { ItemDetailsSheet } from "@/components/clothing/ItemDetailsSheet";
 
-const SLOT_ORDER = ["tops", "bottoms", "shoes", "dresses", "outerwear", "accessories"] as const;
+const SLOT_ORDER = ["makeup", "skincare", "hair", "fragrances"] as const;
 type SlotKey = (typeof SLOT_ORDER)[number];
 
 const SLOT_LABELS: Record<SlotKey, string> = {
-  tops: "Top",
-  bottoms: "Bottom",
-  shoes: "Shoes",
-  dresses: "Dress",
-  outerwear: "Jacket",
-  accessories: "Acc",
+  makeup:     "Makeup",
+  skincare:   "Skincare",
+  hair:       "Hair",
+  fragrances: "Fragrance",
 };
 
 function ItemPhoto({
@@ -39,7 +37,7 @@ function ItemPhoto({
   size?: "sm" | "md" | "lg";
   onClick?: () => void;
 }) {
-  const sizeClass = size === "lg" ? "h-32" : size === "md" ? "h-24" : "h-16";
+  const sizeClass = size === "lg" ? "h-28" : size === "md" ? "h-20" : "h-14";
   return (
     <button
       onClick={onClick}
@@ -131,11 +129,7 @@ export default function SavedPage() {
   const handleDelete = (id: number) => {
     deleteOutfit.mutate(
       { id },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() });
-        },
-      }
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() }) }
     );
   };
 
@@ -149,9 +143,10 @@ export default function SavedPage() {
   const handlePickedItem = (item: ClothingItem) => {
     if (replacingSlot == null) return;
     addItemToOutfit.mutate(
-      { id: replacingSlot.outfitId, itemId: item.id },
+      { id: replacingSlot.outfitId, data: { itemId: item.id } },
       { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() }) }
     );
+    setReplacingSlot(null);
   };
 
   return (
@@ -161,7 +156,6 @@ export default function SavedPage() {
         <div className="flex items-center justify-between">
           <p className="font-medium text-muted-foreground text-sm">Hall of fame.</p>
 
-          {/* Free tier outfit usage badge */}
           {isFree && outfitCount > 0 && (
             <button
               onClick={() => setShowUpgrade(true)}
@@ -180,7 +174,6 @@ export default function SavedPage() {
         </div>
       </header>
 
-      {/* Upgrade nudge when at outfit limit */}
       {atLimit && !isLoading && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -192,7 +185,7 @@ export default function SavedPage() {
             🔓 Lookbook is full
           </p>
           <p className="text-xs text-black/60 mt-1 mb-3 leading-snug">
-            You've saved {FREE_OUTFIT_LIMIT} outfits — the free limit.
+            You've saved {FREE_OUTFIT_LIMIT} looks — the free limit.
             Unlock Forever to save unlimited looks.
           </p>
           <button
@@ -216,8 +209,8 @@ export default function SavedPage() {
       ) : outfits && outfits.length > 0 ? (
         <div className="flex flex-col gap-6">
           {outfits.map((outfit) => {
-            // Group items by category for structured display
-            const byCategory = (outfit.items ?? []).reduce<Partial<Record<SlotKey, ClothingItem>>>(
+            // Group items by category — first match per slot wins
+            const bySlot = (outfit.items ?? []).reduce<Partial<Record<SlotKey, ClothingItem>>>(
               (acc, item) => {
                 const key = item.category as SlotKey;
                 if (SLOT_ORDER.includes(key) && !acc[key]) acc[key] = item;
@@ -226,20 +219,9 @@ export default function SavedPage() {
               {}
             );
 
-            // Primary slots: the "look" — tops/dresses as hero, bottoms, shoes
-            const heroItem = byCategory["dresses"] ?? byCategory["tops"];
-            const bottomItem = byCategory["bottoms"];
-            const shoesItem = byCategory["shoes"];
-            const outerwearItem = byCategory["outerwear"];
-
-            // Secondary slots (any items not shown in the primary layout)
-            const primaryShown = new Set([
-              byCategory["tops"]?.id,
-              byCategory["dresses"]?.id,
-              byCategory["bottoms"]?.id,
-              byCategory["shoes"]?.id,
-            ]);
-            const extras = (outfit.items ?? []).filter((i) => !primaryShown.has(i.id));
+            // Any items whose category isn't a known slot (e.g. legacy data)
+            const knownIds = new Set(Object.values(bySlot).map((i) => i?.id));
+            const extras = (outfit.items ?? []).filter((i) => !knownIds.has(i.id));
 
             return (
               <motion.div
@@ -322,185 +304,78 @@ export default function SavedPage() {
                   )}
                 </div>
 
-                {/* Outfit grid */}
+                {/* 4-slot beauty product grid: makeup / skincare / hair / fragrance */}
                 <div className="p-3">
-                  {/* Main 3-column look: top · bottom · shoes */}
-                  <div className="grid grid-cols-3 gap-2 mb-2">
-                    {/* Hero: top or dress */}
-                    <div className="flex flex-col gap-0.5">
-                      {heroItem ? (
-                        <>
-                          <ItemPhoto item={heroItem} size="lg" onClick={() => setDetailsItem(heroItem)} />
-                          <div className="flex items-center justify-between px-0.5">
-                            <span className="text-[9px] font-bold uppercase text-muted-foreground">
-                              {byCategory["dresses"] ? "Dress" : "Top"}
-                            </span>
-                            <button onClick={() => handleRemoveItem(outfit.id, heroItem.id)}
-                              className="w-4 h-4 flex items-center justify-center rounded-full bg-black/10 hover:bg-red-100 transition-colors">
-                              <X className="w-2.5 h-2.5 text-black/50" />
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => setReplacingSlot({ outfitId: outfit.id, category: byCategory["dresses"] ? "dresses" : "tops" })}
-                          className="h-32 w-full border-2 border-dashed border-black/25 rounded flex flex-col items-center justify-center gap-1 hover:border-black/50 hover:bg-black/5 transition-colors"
-                        >
-                          <Plus className="w-4 h-4 text-black/30" />
-                          <span className="text-[9px] font-bold uppercase text-black/25">{byCategory["dresses"] ? "Add Dress" : "Add Top"}</span>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Bottom */}
-                    <div className="flex flex-col gap-0.5">
-                      {bottomItem && !byCategory["dresses"] ? (
-                        <>
-                          <ItemPhoto item={bottomItem} size="lg" onClick={() => setDetailsItem(bottomItem)} />
-                          <div className="flex items-center justify-between px-0.5">
-                            <span className="text-[9px] font-bold uppercase text-muted-foreground">Bottom</span>
-                            <button onClick={() => handleRemoveItem(outfit.id, bottomItem.id)}
-                              className="w-4 h-4 flex items-center justify-center rounded-full bg-black/10 hover:bg-red-100 transition-colors">
-                              <X className="w-2.5 h-2.5 text-black/50" />
-                            </button>
-                          </div>
-                        </>
-                      ) : byCategory["dresses"] && outerwearItem ? (
-                        <>
-                          <ItemPhoto item={outerwearItem} size="lg" onClick={() => setDetailsItem(outerwearItem)} />
-                          <div className="flex items-center justify-between px-0.5">
-                            <span className="text-[9px] font-bold uppercase text-muted-foreground">Jacket</span>
-                            <button onClick={() => handleRemoveItem(outfit.id, outerwearItem.id)}
-                              className="w-4 h-4 flex items-center justify-center rounded-full bg-black/10 hover:bg-red-100 transition-colors">
-                              <X className="w-2.5 h-2.5 text-black/50" />
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => setReplacingSlot({ outfitId: outfit.id, category: byCategory["dresses"] ? "outerwear" : "bottoms" })}
-                          className="h-32 w-full border-2 border-dashed border-black/25 rounded flex flex-col items-center justify-center gap-1 hover:border-black/50 hover:bg-black/5 transition-colors"
-                        >
-                          <Plus className="w-4 h-4 text-black/30" />
-                          <span className="text-[9px] font-bold uppercase text-black/25">{byCategory["dresses"] ? "Add Jacket" : "Add Bottom"}</span>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Shoes */}
-                    <div className="flex flex-col gap-0.5">
-                      {shoesItem ? (
-                        <>
-                          <ItemPhoto item={shoesItem} size="lg" onClick={() => setDetailsItem(shoesItem)} />
-                          <div className="flex items-center justify-between px-0.5">
-                            <span className="text-[9px] font-bold uppercase text-muted-foreground">Shoes</span>
-                            <button onClick={() => handleRemoveItem(outfit.id, shoesItem.id)}
-                              className="w-4 h-4 flex items-center justify-center rounded-full bg-black/10 hover:bg-red-100 transition-colors">
-                              <X className="w-2.5 h-2.5 text-black/50" />
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => setReplacingSlot({ outfitId: outfit.id, category: "shoes" })}
-                          className="h-32 w-full border-2 border-dashed border-black/25 rounded flex flex-col items-center justify-center gap-1 hover:border-black/50 hover:bg-black/5 transition-colors"
-                        >
-                          <Plus className="w-4 h-4 text-black/30" />
-                          <span className="text-[9px] font-bold uppercase text-black/25">Add Shoes</span>
-                        </button>
-                      )}
-                    </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {SLOT_ORDER.map((slot) => {
+                      const item = bySlot[slot];
+                      return (
+                        <div key={slot} className="flex flex-col gap-0.5">
+                          {item ? (
+                            <>
+                              <ItemPhoto item={item} size="lg" onClick={() => setDetailsItem(item)} />
+                              <div className="flex items-center justify-between px-0.5">
+                                <span className="text-[8px] font-bold uppercase text-muted-foreground truncate">
+                                  {SLOT_LABELS[slot]}
+                                </span>
+                                <button
+                                  onClick={() => handleRemoveItem(outfit.id, item.id)}
+                                  className="w-3.5 h-3.5 flex items-center justify-center rounded-full bg-black/10 hover:bg-red-100 transition-colors flex-shrink-0"
+                                >
+                                  <X className="w-2.5 h-2.5 text-black/50" />
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setReplacingSlot({ outfitId: outfit.id, category: slot })}
+                                className="h-28 w-full border-2 border-dashed border-black/25 rounded flex flex-col items-center justify-center gap-1 hover:border-black/50 hover:bg-black/5 transition-colors"
+                              >
+                                <Plus className="w-3.5 h-3.5 text-black/30" />
+                              </button>
+                              <span className="text-[8px] font-bold uppercase text-black/25 text-center truncate">
+                                {SLOT_LABELS[slot]}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {/* Accessories — 5-slot grid, filled items + empty "+" slots */}
-                  {(() => {
-                    const MAX_SLOTS = 5;
-                    const allAccItems = extras.filter((i) => i.category === "accessories");
-                    const accItems = allAccItems.slice(0, MAX_SLOTS);
-                    const otherExtras = extras.filter((i) => i.category !== "accessories");
-                    const emptySlots = Math.max(0, MAX_SLOTS - accItems.length);
-                    return (
-                      <div className="pt-1 border-t border-black/10">
-                        {/* Non-accessory extras (outerwear etc.) if any */}
-                        {otherExtras.length > 0 && (
-                          <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2">
-                            {otherExtras.map((item) => (
-                              <div key={item.id} className="flex-none flex flex-col items-center gap-0.5 relative">
-                                <button onClick={() => setDetailsItem(item)}>
-                                  <div className="w-14 h-14 border-2 border-black overflow-hidden" style={{ background: "#FDECEF" }}>
-                                    {item.imageObjectPath ? (
-                                      <img src={getImageUrl(item.imageObjectPath)!} alt={item.name} className="w-full h-full object-contain" />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center">
-                                        <span className="text-[8px] font-bold uppercase text-black/30">—</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </button>
-                                <button onClick={() => handleRemoveItem(outfit.id, item.id)}
-                                  className="absolute top-0 right-0 w-4 h-4 bg-white border border-black rounded-full flex items-center justify-center shadow-sm z-10">
-                                  <X className="w-2 h-2" />
-                                </button>
-                                {item.isFavorite && <span className="absolute top-0 left-0 text-[9px] leading-none">❤️</span>}
-                                <span className="text-[8px] font-bold uppercase text-muted-foreground">
-                                  {SLOT_LABELS[item.category as SlotKey] ?? item.category}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {/* 5-slot accessory row */}
-                        <div className="grid grid-cols-5 gap-1.5">
-                          {accItems.map((item) => (
-                            <div key={item.id} className="flex flex-col items-center gap-0.5 relative">
-                              <button onClick={() => setDetailsItem(item)} className="w-full">
-                                <div className="w-full aspect-square border-2 border-black overflow-hidden" style={{ background: "#FDECEF" }}>
-                                  {item.imageObjectPath ? (
-                                    <img src={getImageUrl(item.imageObjectPath)!} alt={item.name} className="w-full h-full object-contain" />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <span className="text-[8px] font-bold uppercase text-black/30">—</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </button>
-                              <button onClick={() => handleRemoveItem(outfit.id, item.id)}
-                                className="absolute top-0 right-0 w-4 h-4 bg-white border border-black rounded-full flex items-center justify-center shadow-sm z-10">
-                                <X className="w-2 h-2" />
-                              </button>
-                              <span className="text-[8px] font-bold uppercase text-muted-foreground truncate w-full text-center">Acc</span>
-                              {item.isFavorite && <span className="absolute top-0 left-0 text-[9px] leading-none">⭐</span>}
-                            </div>
-                          ))}
-                          {Array.from({ length: emptySlots }).map((_, i) => (
-                            <button
-                              key={`empty-${i}`}
-                              onClick={() => setReplacingSlot({ outfitId: outfit.id, category: "accessories" })}
-                              className="flex flex-col items-center gap-0.5"
-                            >
-                              <div
-                                className="w-full aspect-square border-2 border-dashed border-black/25 rounded flex items-center justify-center"
-                                style={{ background: "#FAFAFA" }}
-                              >
-                                <Plus className="w-3.5 h-3.5 text-black/25" />
-                              </div>
-                              {i === 0 ? (
-                                <span className="text-[8px] font-bold uppercase text-black/25 whitespace-nowrap">+ ACC</span>
+                  {/* Any extra items that don't fit a known slot */}
+                  {extras.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-black/10 flex gap-2 overflow-x-auto no-scrollbar">
+                      {extras.map((item) => (
+                        <div key={item.id} className="flex-none flex flex-col items-center gap-0.5 relative">
+                          <button onClick={() => setDetailsItem(item)}>
+                            <div className="w-12 h-12 border-2 border-black overflow-hidden" style={{ background: "#FDECEF" }}>
+                              {item.imageObjectPath ? (
+                                <img src={getImageUrl(item.imageObjectPath)!} alt={item.name} className="w-full h-full object-contain" />
                               ) : (
-                                <span className="text-[8px]">&nbsp;</span>
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <span className="text-[8px] font-bold uppercase text-black/30">—</span>
+                                </div>
                               )}
-                            </button>
-                          ))}
+                            </div>
+                          </button>
+                          <button
+                            onClick={() => handleRemoveItem(outfit.id, item.id)}
+                            className="absolute top-0 right-0 w-4 h-4 bg-white border border-black rounded-full flex items-center justify-center shadow-sm z-10"
+                          >
+                            <X className="w-2 h-2" />
+                          </button>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Footer: item count */}
                 <div className="px-3 pb-3">
                   <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wide">
-                    {outfit.items?.length ?? 0} piece{(outfit.items?.length ?? 0) !== 1 ? "s" : ""}
+                    {outfit.items?.length ?? 0} product{(outfit.items?.length ?? 0) !== 1 ? "s" : ""}
                   </span>
                 </div>
               </motion.div>
@@ -512,9 +387,9 @@ export default function SavedPage() {
           <div className="w-14 h-14 bg-accent rounded-full flex items-center justify-center border-2 border-black mb-4">
             <Bookmark className="w-7 h-7" />
           </div>
-          <h3 className="font-display font-bold text-xl mb-2">No looks saved.</h3>
+          <h3 className="font-display font-bold text-xl mb-2">No looks saved yet.</h3>
           <p className="text-sm font-medium text-muted-foreground">
-            Go to your digital closet, pick pieces from each row, and save the combo.
+            Head to your Vanity, spin the slots, and save looks you love.
           </p>
         </div>
       )}
@@ -526,7 +401,7 @@ export default function SavedPage() {
         )}
       </AnimatePresence>
 
-      {/* Wardrobe replacement picker */}
+      {/* Vanity picker for replacing a slot */}
       <AnimatePresence>
         {replacingSlot !== null && (
           <WardrobePickerSheet
@@ -542,7 +417,7 @@ export default function SavedPage() {
         )}
       </AnimatePresence>
 
-      {/* Accessory details sheet */}
+      {/* Item details sheet */}
       <AnimatePresence>
         {detailsItem && (
           <ItemDetailsSheet

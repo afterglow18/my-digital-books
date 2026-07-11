@@ -49,11 +49,11 @@ router.post("/clothing/validate-image", express.json({ limit: "4mb" }), async (r
               },
             },
             {
-              text: `Does this image show a clothing item or pair of shoes?
-Clothing items include: shirts, tops, blouses, t-shirts, sweaters, hoodies, jackets, coats, pants, jeans, shorts, skirts, dresses, socks, shoes, sneakers, boots, sandals, hats, scarves, gloves, belts, bags, and similar wearables.
+              text: `Does this image show a beauty, skincare, hair care, or fragrance product?
+Beauty and vanity products include: lipstick, foundation, mascara, eyeshadow, blush, concealer, moisturizer, serum, sunscreen, toner, cleanser, face mask, shampoo, conditioner, hair oil, hair spray, hair tools, perfume, cologne, body spray, deodorant, nail polish, and similar personal care or beauty items.
 
 Reply with a JSON object (no markdown, no code fences) with exactly two keys:
-  "isClothing": boolean  — true if the image clearly shows a clothing item or wearable accessory
+  "isClothing": boolean  — true if the image clearly shows a beauty, hair care, skincare, or fragrance product
   "reason": string       — one sentence explanation`,
             },
           ],
@@ -181,11 +181,11 @@ router.post("/clothing/generate-outfit", requireAuth, async (req, res): Promise<
   }
 
   if (Object.keys(byCategory).length === 0) {
-    res.status(422).json({ error: "Not enough clothing items to generate an outfit. Add some items first!" });
+    res.status(422).json({ error: "Your vanity is empty. Add some beauty products first!" });
     return;
   }
 
-  const preferredOrder = ["tops", "bottoms", "shoes", "outerwear", "dresses", "accessories"];
+  const preferredOrder = ["makeup", "skincare", "hair", "fragrances"];
   const outfitItems: typeof allItems = [];
 
   for (const cat of preferredOrder) {
@@ -193,8 +193,6 @@ router.post("/clothing/generate-outfit", requireAuth, async (req, res): Promise<
       const catItems = byCategory[cat];
       const picked = catItems[Math.floor(Math.random() * catItems.length)];
       outfitItems.push(picked);
-      if (cat === "dresses") break;
-      if (outfitItems.length >= 4 && cat === "outerwear") continue;
     }
   }
 

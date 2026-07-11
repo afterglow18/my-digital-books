@@ -28,15 +28,13 @@ import { encodeToPng } from "@/lib/processImage";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-type Category = "tops" | "bottoms" | "shoes" | "accessories" | "outerwear" | "dresses";
+type Category = "makeup" | "skincare" | "hair" | "fragrances";
 
 const CATEGORY_LABELS: Record<Category, string> = {
-  tops:        "Top",
-  bottoms:     "Bottom",
-  shoes:       "Shoes",
-  accessories: "Accessory",
-  outerwear:   "Outerwear",
-  dresses:     "Dress",
+  makeup:     "Makeup",
+  skincare:   "Skincare",
+  hair:       "Hair",
+  fragrances: "Fragrance",
 };
 
 type Phase =
@@ -353,7 +351,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </div>
               <div className="text-center">
                 <p className="font-display font-bold text-2xl uppercase tracking-tight">Checking…</p>
-                <p className="text-sm text-muted-foreground mt-1">Making sure this is a clothing item.</p>
+                <p className="text-sm text-muted-foreground mt-1">Making sure this is a beauty product.</p>
               </div>
             </motion.div>
           )}
@@ -374,7 +372,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </div>
               <div className="text-center">
                 <p className="font-display font-bold text-2xl uppercase tracking-tight">Saving…</p>
-                <p className="text-sm text-muted-foreground mt-1">Adding to your closet.</p>
+                <p className="text-sm text-muted-foreground mt-1">Adding to your vanity.</p>
               </div>
             </motion.div>
           )}

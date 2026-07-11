@@ -135,6 +135,11 @@ export interface SavedOutfit {
   createdAt: string;
 }
 
+export interface RenameOutfitBody {
+  /** @minLength 1 */
+  name: string;
+}
+
 export interface OutfitInput {
   /** @minLength 1 */
   name: string;
@@ -173,11 +178,13 @@ export type ListClothingCategory = typeof ListClothingCategory[keyof typeof List
 
 
 export const ListClothingCategory = {
-  tops: 'tops',
-  bottoms: 'bottoms',
-  shoes: 'shoes',
-  accessories: 'accessories',
-  outerwear: 'outerwear',
-  dresses: 'dresses',
+  makeup: 'makeup',
+  skincare: 'skincare',
+  hair: 'hair',
+  fragrances: 'fragrances',
 } as const;
+
+export type AddItemToOutfitBody = {
+  itemId: number;
+};
 

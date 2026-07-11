@@ -1,12 +1,12 @@
 /**
- * GeneratePage — "Matchmaker" screen.
+ * GeneratePage — "Spin It" screen for My Digital Vanity.
  *
- * Identical closet background and ClosetRow carousels as WardrobePage.
+ * Uses the same vanity-bg.png (1024×1536) and 4-shelf layout as WardrobePage.
  * Phase machine:
- *   idle     → wardrobe display; golden "✨ Spin It!" button on rug
+ *   idle     → shelves display items; "✨ Spin It!" button at bottom
  *   spinning → carousels cycle randomly while API is in flight
- *   result   → carousels landed on AI pick; Re-spin + Save It ♡ on rug
- *   (save input inline in rug bar, same pattern as wardrobe)
+ *   result   → carousels landed on AI pick; "As If!" + "Save It ♡" buttons
+ *   (save input inline, same pattern as wardrobe)
  */
 
 import React, {
@@ -22,24 +22,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ClosetRow, ClosetRowHandle } from "@/components/ClosetRow";
 import { useQueryClient } from "@tanstack/react-query";
 
-// ── Layout constants (identical to wardrobe.tsx) ──────────────────────────────
-const IMG_W = 941;
-const IMG_H = 1672;
+// ── Layout constants (same as wardrobe.tsx) ───────────────────────────────────
+const IMG_W = 1024;
+const IMG_H = 1536;
 const NAV_H = 90;
-const GOLD  = "#C49B2A";
+const PINK  = "#e08090";
 
 const LM = {
-  doorL: 0.092,
-  doorR: 0.901,
+  doorL: 0.185,
+  doorR: 0.815,
   rows: [
-    { btnCY: 0.311, boxY: 0.319 },
-    { btnCY: 0.498, boxY: 0.506 },
-    { btnCY: 0.690, boxY: 0.697 },
+    { sectionTop: 0.185, shelfY: 0.395 },
+    { sectionTop: 0.395, shelfY: 0.555 },
+    { sectionTop: 0.555, shelfY: 0.715 },
+    { sectionTop: 0.715, shelfY: 0.855 },
   ],
-  barY:    0.885,
-  barBot:  0.993,
-  saveBtnL: 0.350,
-  saveBtnR: 0.650,
+  // Action bar sits below the 4th shelf, covering the decorative bottom items area
+  barY:   0.858,
+  barBot: 0.960,
 } as const;
 
 interface ImgRect {
@@ -73,22 +73,17 @@ const pW = (ir: ImgRect, f: number) => ir.width  * f;
 const pX = (ir: ImgRect, f: number) => ir.left   + ir.width  * f;
 const pY = (ir: ImgRect, f: number) => ir.top    + ir.height * f;
 
-// Pill fill colours sampled from closet-bg.png at each row's centre pixel.
-// Used to cover the baked-in "+ ADD …" text on the Generate page only.
-const PILL_COLORS = ["#F9EAE6", "#EBE8E8", "#FAEFEB"] as const;
-
 // ── Types ─────────────────────────────────────────────────────────────────────
-type RowKey = "tops" | "bottoms" | "shoes";
+type RowKey = "makeup" | "skincare" | "hair" | "fragrances";
 type Phase  = "idle" | "spinning" | "result";
 
 const ROWS: { key: RowKey }[] = [
-  { key: "tops"    },
-  { key: "bottoms" },
-  { key: "shoes"   },
+  { key: "makeup"     },
+  { key: "skincare"   },
+  { key: "hair"       },
+  { key: "fragrances" },
 ];
 
-// Minimum spin duration (ms) even if API responds instantly — so the animation
-// always feels deliberate.
 const MIN_SPIN_MS = 1600;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -98,9 +93,10 @@ export default function GeneratePage() {
   const ready = ir.width > 0;
 
   const rowRefs: Record<RowKey, RefObject<ClosetRowHandle | null>> = {
-    tops:    useRef<ClosetRowHandle | null>(null),
-    bottoms: useRef<ClosetRowHandle | null>(null),
-    shoes:   useRef<ClosetRowHandle | null>(null),
+    makeup:     useRef<ClosetRowHandle | null>(null),
+    skincare:   useRef<ClosetRowHandle | null>(null),
+    hair:       useRef<ClosetRowHandle | null>(null),
+    fragrances: useRef<ClosetRowHandle | null>(null),
   };
 
   const [phase,      setPhase]      = useState<Phase>("idle");
@@ -108,26 +104,24 @@ export default function GeneratePage() {
   const [isSaveOpen, setIsSaveOpen] = useState(false);
   const [saveName,   setSaveName]   = useState("");
 
-  // Ref so the spin callbacks always read the latest rowData without needing
-  // to be recreated on every data change.
-  const rowDataRef = useRef<Record<RowKey, ClothingItem[]>>({ tops: [], bottoms: [], shoes: [] });
+  const rowDataRef = useRef<Record<RowKey, ClothingItem[]>>({
+    makeup: [], skincare: [], hair: [], fragrances: [],
+  });
 
-  const { data: tops    = [] } = useListClothing({ category: "tops"    }, { query: { queryKey: getListClothingQueryKey({ category: "tops"    }) } });
-  const { data: bottoms = [] } = useListClothing({ category: "bottoms" }, { query: { queryKey: getListClothingQueryKey({ category: "bottoms" }) } });
-  const { data: shoes   = [] } = useListClothing({ category: "shoes"   }, { query: { queryKey: getListClothingQueryKey({ category: "shoes"   }) } });
+  const { data: makeup     = [] } = useListClothing({ category: "makeup"     }, { query: { queryKey: getListClothingQueryKey({ category: "makeup"     }) } });
+  const { data: skincare   = [] } = useListClothing({ category: "skincare"   }, { query: { queryKey: getListClothingQueryKey({ category: "skincare"   }) } });
+  const { data: hair       = [] } = useListClothing({ category: "hair"       }, { query: { queryKey: getListClothingQueryKey({ category: "hair"       }) } });
+  const { data: fragrances = [] } = useListClothing({ category: "fragrances" }, { query: { queryKey: getListClothingQueryKey({ category: "fragrances" }) } });
 
-  useEffect(() => { rowDataRef.current = { tops, bottoms, shoes }; }, [tops, bottoms, shoes]);
+  useEffect(() => { rowDataRef.current = { makeup, skincare, hair, fragrances }; }, [makeup, skincare, hair, fragrances]);
 
-  const hasItems = tops.length > 0 || bottoms.length > 0 || shoes.length > 0;
+  const hasItems = makeup.length > 0 || skincare.length > 0 || hair.length > 0 || fragrances.length > 0;
 
-  const setCentredTops    = useCallback((item: ClothingItem | null) =>
-    setCentred(p => ({ ...p, tops:    item ?? undefined })), []);
-  const setCentredBottoms = useCallback((item: ClothingItem | null) =>
-    setCentred(p => ({ ...p, bottoms: item ?? undefined })), []);
-  const setCentredShoes   = useCallback((item: ClothingItem | null) =>
-    setCentred(p => ({ ...p, shoes:   item ?? undefined })), []);
-  const centredHandlers: Record<RowKey, (item: ClothingItem | null) => void> = {
-    tops: setCentredTops, bottoms: setCentredBottoms, shoes: setCentredShoes,
+  const setCentredHandlers: Record<RowKey, (item: ClothingItem | null) => void> = {
+    makeup:     useCallback((item: ClothingItem | null) => setCentred(p => ({ ...p, makeup:     item ?? undefined })), []),
+    skincare:   useCallback((item: ClothingItem | null) => setCentred(p => ({ ...p, skincare:   item ?? undefined })), []),
+    hair:       useCallback((item: ClothingItem | null) => setCentred(p => ({ ...p, hair:       item ?? undefined })), []),
+    fragrances: useCallback((item: ClothingItem | null) => setCentred(p => ({ ...p, fragrances: item ?? undefined })), []),
   };
 
   const generateOutfit = useGenerateOutfit();
@@ -146,13 +140,10 @@ export default function GeneratePage() {
     setSaveName("");
 
     const spinStart = Date.now();
+    const stop: Record<RowKey, boolean> = { makeup: false, skincare: false, hair: false, fragrances: false };
 
-    // Stop flags — each row's cycle loop checks this
-    const stop: Record<RowKey, boolean> = { tops: false, bottoms: false, shoes: false };
-
-    // Each row cycles at a slightly different cadence for a slot-machine feel
     ROWS.forEach(({ key }, ri) => {
-      const INTERVAL = 65 + ri * 18; // tops=65ms, bottoms=83ms, shoes=101ms
+      const INTERVAL = 65 + ri * 18;
       const cycle = () => {
         if (stop[key]) return;
         const items = rowDataRef.current[key];
@@ -167,27 +158,23 @@ export default function GeneratePage() {
       cycle();
     });
 
-    // Fire API request simultaneously with animation
     generateOutfit.mutate(
       { data: { excludeCategories: [] } },
       {
         onSuccess: (data) => {
-          // Build target map: category → { item, localIdx }
           const landMap: Partial<Record<RowKey, { item: ClothingItem; idx: number }>> = {};
           data.items.forEach(apiItem => {
             const key = apiItem.category as RowKey;
-            if (!["tops", "bottoms", "shoes"].includes(key)) return;
+            if (!["makeup", "skincare", "hair", "fragrances"].includes(key)) return;
             const arr = rowDataRef.current[key];
             const localIdx = arr.findIndex(i => i.id === apiItem.id);
             landMap[key] = { item: apiItem, idx: localIdx >= 0 ? localIdx : 0 };
           });
 
-          // Honour minimum spin time so the animation always feels deliberate
           const elapsed   = Date.now() - spinStart;
           const extraWait = Math.max(0, MIN_SPIN_MS - elapsed);
 
           setTimeout(() => {
-            // Stagger the landing: tops 0ms, bottoms 280ms, shoes 560ms
             ROWS.forEach(({ key }, ri) => {
               setTimeout(() => {
                 stop[key] = true;
@@ -196,7 +183,6 @@ export default function GeneratePage() {
               }, ri * 280);
             });
 
-            // Transition to result after the last row lands + snap animation
             const lastLandAt = (ROWS.length - 1) * 280 + 380;
             setTimeout(() => {
               const newCentred: Partial<Record<RowKey, ClothingItem>> = {};
@@ -224,9 +210,7 @@ export default function GeneratePage() {
     startSpin();
   }, [hasItems, phase, startSpin]);
 
-  const handleRespin = useCallback(() => {
-    startSpin();
-  }, [startSpin]);
+  const handleRespin = useCallback(() => startSpin(), [startSpin]);
 
   const handleSave = () => {
     if (!saveName.trim()) return;
@@ -245,6 +229,13 @@ export default function GeneratePage() {
 
   const canSave = Object.keys(centred).length > 0;
 
+  // ── Section layout helpers ────────────────────────────────────────────────
+  const sectionHeights = ready
+    ? LM.rows.map(lm => pH(ir, lm.shelfY - lm.sectionTop))
+    : LM.rows.map(() => 0);
+  const minSectionH = ready ? Math.min(...sectionHeights) : 0;
+  const maxPhotoH   = Math.max(0, minSectionH - 4);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
@@ -254,13 +245,13 @@ export default function GeneratePage() {
         width: "100%",
         height: `min(calc(100dvh - ${NAV_H}px), calc(100vw * ${(IMG_H / IMG_W).toFixed(6)}))`,
         overflow: "hidden",
-        background: "#F0C030",
+        background: "#e8b8b0",
       }}
     >
       {/* ── Background image ── */}
       <img
-        src="/closet-bg.png"
-        alt="My Digital Closet"
+        src="/vanity-bg.png"
+        alt="My Digital Vanity"
         style={{
           position: "absolute",
           top:    ready ? ir.top    : 0,
@@ -275,114 +266,47 @@ export default function GeneratePage() {
       />
 
       {ready && (() => {
-        const tapH       = Math.max(36, pH(ir, 0.055));
-        const rowTapTops = LM.rows.map(lm => pY(ir, lm.btnCY) - tapH / 2);
-        const rowTapBots = rowTapTops.map(t => t + tapH);
-        const GAP_PX     = 2;
-
-        const rowLayouts = LM.rows.map((lm, i) => {
-          const nextOverlayTop = i < LM.rows.length - 1
-            ? rowTapTops[i + 1]
-            : pY(ir, LM.barY);
-          const carTop = i === 2
-            ? pY(ir, lm.boxY) + GAP_PX
-            : Math.max(pY(ir, lm.boxY), rowTapBots[i] + GAP_PX);
-          const carH = Math.max(0, nextOverlayTop - carTop);
-          return { carTop, carH };
-        });
-
-        const minCarH   = Math.min(...rowLayouts.map(r => r.carH));
-        const maxPhotoH = Math.max(0, minCarH - 2);
-        const carLeft   = pX(ir, LM.doorL);
-        const carRight  = ir.left + pW(ir, 1 - LM.doorR);
+        const carLeft = pX(ir, LM.doorL);
+        const carW    = pW(ir, LM.doorR - LM.doorL);
 
         return (
           <>
-            {/* ── Three clothing carousels ── */}
+            {/* ── 4 shelf carousels ── */}
             {ROWS.map(({ key }, rowIdx) => {
-              const lm         = LM.rows[rowIdx];
-              const items      = { tops, bottoms, shoes }[key];
-              const { carTop, carH } = rowLayouts[rowIdx];
-              const tapTop     = rowTapTops[rowIdx];
-              const overlayH   = carTop - tapTop;
-              const bgPosX     = -pW(ir, LM.doorL);
-              const bgPosY     = -tapTop;
+              const lm    = LM.rows[rowIdx];
+              const items = { makeup, skincare, hair, fragrances }[key];
+              const secTop = pY(ir, lm.sectionTop);
+              const secH   = pH(ir, lm.shelfY - lm.sectionTop);
 
               return (
                 <React.Fragment key={key}>
-                  {/* Rod + pill overlay — re-draws background crop at z=20 so the
-                      rod and baked-in label always sit above photo cards */}
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      top:    tapTop,
-                      left:   carLeft,
-                      right:  carRight,
-                      height: Math.max(0, overlayH),
-                      zIndex: 20,
-                      pointerEvents: "none",
-                      backgroundImage: "url('/closet-bg.png')",
-                      backgroundSize: `${ir.width}px ${ir.height}px`,
-                      backgroundPosition: `${bgPosX}px ${bgPosY}px`,
-                      backgroundRepeat: "no-repeat",
-                    }}
-                  />
-
-                  {/* Text-cover — hides baked-in "+ ADD …" label on Generate page only.
-                      Solid pill-coloured rect centred on the button, z=21. */}
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      top:    pY(ir, lm.btnCY) - pH(ir, 0.009),
-                      left:   carLeft + pW(ir, 0.04),
-                      right:  carRight + pW(ir, 0.04),
-                      height: pH(ir, 0.018),
-                      zIndex: 21,
-                      pointerEvents: "none",
-                      background: PILL_COLORS[rowIdx],
-                      borderRadius: 999,
-                    }}
-                  />
-
-                  {/* Clothing carousel */}
                   {items.length > 0 ? (
                     <div
                       style={{
                         position: "absolute",
-                        top:    carTop,
-                        left:   carLeft,
-                        right:  carRight,
-                        height: carH,
-                        zIndex: 10,
-                        overflow: "hidden",
+                        top: secTop, left: carLeft, width: carW, height: secH,
+                        zIndex: 10, overflow: "hidden",
                       }}
                     >
                       <ClosetRow
                         ref={rowRefs[key]}
                         items={items}
-                        onCenteredItem={centredHandlers[key]}
+                        onCenteredItem={setCentredHandlers[key]}
                         maxPhotoH={maxPhotoH}
                         disableSwipe
                       />
                     </div>
                   ) : (
-                    /* Empty row placeholder */
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: carTop, left: carLeft, right: carRight,
-                        height: carH, zIndex: 10,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
+                    <div style={{
+                      position: "absolute",
+                      top: secTop, left: carLeft, width: carW, height: secH,
+                      zIndex: 10,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
                       <span style={{
                         fontSize: 10, fontWeight: 700,
                         letterSpacing: "0.09em", textTransform: "uppercase",
-                        color: "rgba(160,100,60,0.35)",
+                        color: "rgba(180,100,110,0.40)",
                       }}>
                         No items
                       </span>
@@ -405,10 +329,8 @@ export default function GeneratePage() {
                     transform: "translate(-50%, -50%)",
                     zIndex: 25,
                     pointerEvents: "none",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 8,
+                    display: "flex", flexDirection: "column",
+                    alignItems: "center", gap: 8,
                   }}
                 >
                   <motion.span
@@ -421,18 +343,18 @@ export default function GeneratePage() {
                   <span style={{
                     fontSize: 10, fontWeight: 800,
                     letterSpacing: "0.13em", textTransform: "uppercase",
-                    color: "#6a3a10",
-                    background: "rgba(255,248,225,0.88)",
+                    color: "#7a3040",
+                    background: "rgba(255,235,240,0.90)",
                     padding: "3px 11px", borderRadius: 20,
                     whiteSpace: "nowrap",
                   }}>
-                    Finding your look…
+                    Building your look…
                   </span>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* ── Empty wardrobe prompt ── */}
+            {/* ── Empty vanity prompt ── */}
             {!hasItems && (
               <div style={{
                 position: "absolute",
@@ -442,52 +364,51 @@ export default function GeneratePage() {
                 textAlign: "center",
                 padding: "14px 22px",
                 borderRadius: 16,
-                background: "rgba(255,248,232,0.92)",
-                border: "1.5px solid rgba(196,155,42,0.40)",
+                background: "rgba(255,240,245,0.92)",
+                border: "1.5px solid rgba(220,150,160,0.40)",
                 boxShadow: "0 4px 18px rgba(0,0,0,0.11)",
                 maxWidth: pW(ir, 0.65),
               }}>
                 <p style={{
                   fontWeight: 800, fontSize: 12,
                   letterSpacing: "0.07em", textTransform: "uppercase",
-                  color: "#5a3a10", fontFamily: "var(--font-display)", margin: 0,
+                  color: "#7a3040", fontFamily: "var(--font-display)", margin: 0,
                 }}>
-                  Your closet is empty
+                  Your vanity is empty
                 </p>
                 <p style={{
-                  fontSize: 11, color: "#8a5e28",
+                  fontSize: 11, color: "#9a5060",
                   marginTop: 5, lineHeight: 1.5,
                 }}>
-                  Add tops, bottoms and shoes in the Wardrobe tab first.
+                  Add makeup, skincare, hair or fragrances in the Vanity tab first.
                 </p>
               </div>
             )}
 
-            {/* ── Bottom action bar — clean white panel over the rug area ──
-                Covers all three baked-in wardrobe circles (hanger / save / mannequin)
-                with a solid white bar so only the Generate page's buttons show. */}
+            {/* ── Action bar — white panel covering the decorative bottom shelf ── */}
             <div
               aria-hidden="true"
               style={{
                 position: "absolute",
                 top:    pY(ir, LM.barY),
                 left:   pX(ir, LM.doorL),
-                right:  ir.left + pW(ir, 1 - LM.doorR),
+                width:  pW(ir, LM.doorR - LM.doorL),
                 height: pH(ir, LM.barBot - LM.barY),
                 zIndex: 18,
                 pointerEvents: "none",
-                background: "#FFFFFF",
-                borderTop: "1.5px solid rgba(0,0,0,0.08)",
+                background: "rgba(255,248,250,0.96)",
+                borderTop: "1px solid rgba(220,150,160,0.25)",
+                borderRadius: "0 0 4px 4px",
               }}
             />
 
-            {/* ── CTA buttons — sit on top of the white bar ── */}
+            {/* ── CTA buttons ── */}
             <div
               style={{
                 position: "absolute",
                 top:    pY(ir, LM.barY),
                 left:   pX(ir, LM.doorL),
-                right:  ir.left + pW(ir, 1 - LM.doorR),
+                width:  pW(ir, LM.doorR - LM.doorL),
                 height: pH(ir, LM.barBot - LM.barY),
                 zIndex: 22,
                 display: "flex",
@@ -497,7 +418,7 @@ export default function GeneratePage() {
             >
               <AnimatePresence mode="wait">
 
-                {/* IDLE: Spin It button */}
+                {/* IDLE: Spin It */}
                 {phase === "idle" && !isSaveOpen && (
                   <motion.button
                     key="spin-btn"
@@ -508,25 +429,19 @@ export default function GeneratePage() {
                     onClick={handleSpin}
                     disabled={!hasItems}
                     style={{
-                      padding: "0 28px",
-                      height: 44,
-                      borderRadius: 24,
+                      padding: "0 28px", height: 44, borderRadius: 24,
                       border: "2.5px solid #000",
                       background: hasItems
-                        ? "linear-gradient(to bottom, #f6db3a, #c98f12)"
-                        : "rgba(210,185,100,0.32)",
-                      color: "#2e1a00",
-                      fontWeight: 800,
-                      fontSize: 14,
-                      letterSpacing: "-0.01em",
-                      textTransform: "uppercase",
+                        ? "linear-gradient(to bottom, #f7c6d8, #e08090)"
+                        : "rgba(220,180,190,0.32)",
+                      color: hasItems ? "#fff" : "#9a6070",
+                      fontWeight: 800, fontSize: 14,
+                      letterSpacing: "-0.01em", textTransform: "uppercase",
                       whiteSpace: "nowrap",
                       boxShadow: hasItems ? "3px 3px 0 rgba(0,0,0,0.85)" : "none",
                       cursor: hasItems ? "pointer" : "default",
                       fontFamily: "var(--font-display)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 7,
+                      display: "flex", alignItems: "center", gap: 7,
                     }}
                   >
                     ✨ Spin It!
@@ -545,8 +460,8 @@ export default function GeneratePage() {
                       padding: "0 24px", height: 44,
                       alignItems: "center", justifyContent: "center",
                       borderRadius: 24,
-                      background: "rgba(255,246,220,0.78)",
-                      border: "1.5px solid rgba(196,155,42,0.28)",
+                      background: "rgba(255,235,240,0.85)",
+                      border: "1.5px solid rgba(220,150,160,0.28)",
                     }}
                   >
                     {[0, 1, 2].map(i => (
@@ -559,14 +474,14 @@ export default function GeneratePage() {
                         }}
                         style={{
                           width: 7, height: 7, borderRadius: "50%",
-                          background: GOLD,
+                          background: PINK,
                         }}
                       />
                     ))}
                   </motion.div>
                 )}
 
-                {/* RESULT: AS IF! + SAVE IT */}
+                {/* RESULT: As If! + Save It */}
                 {phase === "result" && !isSaveOpen && (
                   <motion.div
                     key="result-btns"
@@ -574,26 +489,21 @@ export default function GeneratePage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     style={{
-                      display: "flex", gap: 10,
-                      justifyContent: "center",
+                      display: "flex", gap: 10, justifyContent: "center",
                       width: "100%", padding: "0 16px",
                     }}
                   >
-                    {/* AS IF! — yellow, icon far right */}
                     <button
                       onClick={handleRespin}
                       style={{
-                        flexGrow: 1, flexShrink: 1, flexBasis: "0%",
-                        minWidth: 0,
+                        flexGrow: 1, flexShrink: 1, flexBasis: "0%", minWidth: 0,
                         height: 44, borderRadius: 24,
                         border: "2.5px solid #000",
-                        background: "linear-gradient(to bottom, #f6db3a, #c98f12)",
-                        color: "#2e1a00",
+                        background: "linear-gradient(to bottom, #f7c6d8, #e08090)",
+                        color: "#fff",
                         fontFamily: "var(--font-display)",
-                        fontWeight: 800,
-                        fontSize: 14,
-                        letterSpacing: "-0.01em",
-                        textTransform: "uppercase",
+                        fontWeight: 800, fontSize: 14,
+                        letterSpacing: "-0.01em", textTransform: "uppercase",
                         whiteSpace: "nowrap",
                         boxShadow: "2px 2px 0 rgba(0,0,0,0.85)",
                         cursor: "pointer",
@@ -606,22 +516,18 @@ export default function GeneratePage() {
                       <span style={{ fontSize: 14, lineHeight: 1 }}>✨</span>
                     </button>
 
-                    {/* SAVE IT — white, icon below text */}
                     <button
                       onClick={() => setIsSaveOpen(true)}
                       disabled={!canSave}
                       style={{
-                        flexGrow: 1, flexShrink: 1, flexBasis: "0%",
-                        minWidth: 0,
+                        flexGrow: 1, flexShrink: 1, flexBasis: "0%", minWidth: 0,
                         height: 44, borderRadius: 24,
                         border: "2.5px solid #000",
-                        background: canSave ? "#FFFFFF" : "rgba(240,240,240,0.80)",
-                        color: "#2e1a00",
+                        background: canSave ? "#fff" : "rgba(240,240,240,0.80)",
+                        color: "#5a2030",
                         fontFamily: "var(--font-display)",
-                        fontWeight: 800,
-                        fontSize: 14,
-                        letterSpacing: "-0.01em",
-                        textTransform: "uppercase",
+                        fontWeight: 800, fontSize: 14,
+                        letterSpacing: "-0.01em", textTransform: "uppercase",
                         whiteSpace: "nowrap",
                         boxShadow: canSave ? "2px 2px 0 rgba(0,0,0,0.85)" : "none",
                         cursor: canSave ? "pointer" : "default",
@@ -644,7 +550,7 @@ export default function GeneratePage() {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
-                    style={{ display: "flex", gap: 6, width: "100%" }}
+                    style={{ display: "flex", gap: 6, width: "100%", padding: "0 8px" }}
                   >
                     <input
                       autoFocus
@@ -655,9 +561,9 @@ export default function GeneratePage() {
                       onKeyDown={e => e.key === "Enter" && handleSave()}
                       style={{
                         flex: 1, height: 38, borderRadius: 20, padding: "0 14px",
-                        fontSize: 13, fontWeight: 600, color: "#3a2400",
-                        background: "rgba(255,252,245,0.98)",
-                        border: "1.5px solid rgba(196,155,42,0.50)",
+                        fontSize: 13, fontWeight: 600, color: "#5a2030",
+                        background: "rgba(255,252,248,0.98)",
+                        border: "1.5px solid rgba(220,150,160,0.50)",
                         boxShadow: "0 3px 12px rgba(0,0,0,0.13)",
                         outline: "none",
                       }}
@@ -666,22 +572,22 @@ export default function GeneratePage() {
                       onClick={() => { setIsSaveOpen(false); setSaveName(""); }}
                       style={{
                         width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
-                        background: "rgba(255,250,240,0.97)",
-                        border: "1.5px solid rgba(196,155,42,0.36)",
+                        background: "rgba(255,248,250,0.97)",
+                        border: "1.5px solid rgba(220,150,160,0.36)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         cursor: "pointer",
                       }}
                     >
-                      <X style={{ width: 14, height: 14, color: GOLD }} />
+                      <X style={{ width: 14, height: 14, color: PINK }} />
                     </button>
                     <button
                       onClick={handleSave}
                       disabled={!saveName.trim() || saveOutfit.isPending}
                       style={{
-                        padding: "0 16px", height: 36, borderRadius: 20, flexShrink: 0,
-                        background: "linear-gradient(to bottom,#f6db3a,#c98f12)",
-                        color: "#3a2400", fontWeight: 700, fontSize: 13, border: "none",
-                        boxShadow: "0 3px 10px rgba(200,168,24,0.30)",
+                        padding: "0 14px", height: 36, borderRadius: 20, flexShrink: 0,
+                        background: "linear-gradient(to bottom, #f7c6d8, #e08090)",
+                        color: "#fff", fontWeight: 700, fontSize: 13, border: "none",
+                        boxShadow: "0 3px 10px rgba(220,100,130,0.30)",
                         opacity: (!saveName.trim() || saveOutfit.isPending) ? 0.42 : 1,
                         cursor: "pointer",
                       }}

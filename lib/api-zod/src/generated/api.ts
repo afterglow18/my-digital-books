@@ -21,7 +21,7 @@ export const HealthCheckResponse = zod.object({
  * @summary List all clothing items
  */
 export const ListClothingQueryParams = zod.object({
-  "category": zod.enum(['tops', 'bottoms', 'shoes', 'accessories', 'outerwear', 'dresses']).optional().describe('Filter by category')
+  "category": zod.enum(['makeup', 'skincare', 'hair', 'fragrances']).optional().describe('Filter by category')
 })
 
 export const ListClothingResponseItem = zod.object({
@@ -277,16 +277,115 @@ export const SaveOutfitResponse = zod.object({
 
 
 /**
+ * @summary Add an item to a saved outfit
+ */
+export const AddItemToOutfitParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AddItemToOutfitBody = zod.object({
+  "itemId": zod.number()
+})
+
+export const AddItemToOutfitResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "itemIds": zod.array(zod.number()),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['tops', 'bottoms', 'shoes', 'accessories', 'outerwear', 'dresses']),
+  "imageObjectPath": zod.string().nullable(),
+  "color": zod.string().nullish(),
+  "brand": zod.string().nullish(),
+  "size": zod.string().nullish(),
+  "season": zod.string().nullish(),
+  "occasion": zod.string().nullish(),
+  "purchasePrice": zod.string().nullish(),
+  "purchaseDate": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isFavorite": zod.boolean().optional(),
+  "timesWorn": zod.number().optional(),
+  "createdAt": zod.coerce.date()
+})).optional(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Remove an item from an outfit
+ */
+export const RemoveItemFromOutfitParams = zod.object({
+  "id": zod.coerce.number(),
+  "itemId": zod.coerce.number()
+})
+
+export const RemoveItemFromOutfitResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "itemIds": zod.array(zod.number()),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['tops', 'bottoms', 'shoes', 'accessories', 'outerwear', 'dresses']),
+  "imageObjectPath": zod.string().nullable(),
+  "color": zod.string().nullish(),
+  "brand": zod.string().nullish(),
+  "size": zod.string().nullish(),
+  "season": zod.string().nullish(),
+  "occasion": zod.string().nullish(),
+  "purchasePrice": zod.string().nullish(),
+  "purchaseDate": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isFavorite": zod.boolean().optional(),
+  "timesWorn": zod.number().optional(),
+  "createdAt": zod.coerce.date()
+})).optional(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Rename a saved outfit
  */
 export const RenameOutfitParams = zod.object({
   "id": zod.coerce.number()
 })
 
+
+
+
 export const RenameOutfitBody = zod.object({
-  "name": zod.string().min(1).optional(),
-  "notes": zod.string().nullable().optional()
+  "name": zod.string().min(1)
 })
+
+export const RenameOutfitResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "itemIds": zod.array(zod.number()),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['tops', 'bottoms', 'shoes', 'accessories', 'outerwear', 'dresses']),
+  "imageObjectPath": zod.string().nullable(),
+  "color": zod.string().nullish(),
+  "brand": zod.string().nullish(),
+  "size": zod.string().nullish(),
+  "season": zod.string().nullish(),
+  "occasion": zod.string().nullish(),
+  "purchasePrice": zod.string().nullish(),
+  "purchaseDate": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isFavorite": zod.boolean().optional(),
+  "timesWorn": zod.number().optional(),
+  "createdAt": zod.coerce.date()
+})).optional(),
+  "createdAt": zod.coerce.date()
+})
+
 
 /**
  * @summary Delete a saved outfit
@@ -296,40 +395,6 @@ export const DeleteOutfitParams = zod.object({
 })
 
 export const DeleteOutfitResponse = zod.void()
-
-/**
- * @summary Remove an item from an outfit
- */
-export const RemoveOutfitItemParams = zod.object({
-  "id": zod.coerce.number(),
-  "itemId": zod.coerce.number()
-})
-
-/**
- * @summary Add an item to an existing outfit
- */
-export const AddOutfitItemParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const AddOutfitItemBody = zod.object({
-  "itemId": zod.number()
-})
-
-export const AddOutfitItemResponse = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "notes": zod.string().nullish(),
-  "itemIds": zod.array(zod.number()),
-  "items": zod.array(zod.object({
-    "id": zod.number(),
-    "name": zod.string(),
-    "category": zod.enum(['tops', 'bottoms', 'shoes', 'accessories', 'outerwear', 'dresses']),
-    "imageObjectPath": zod.string().nullish(),
-    "createdAt": zod.string().nullish(),
-    "isFavorite": zod.boolean().nullish()
-  }))
-})
 
 
 /**

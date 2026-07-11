@@ -16,12 +16,12 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const wardrobeCount = stats?.byCategory
     ? stats.byCategory
-        .filter((c: { category: string }) => ["tops", "bottoms", "shoes"].includes(c.category))
+        .filter((c: { category: string }) => ["makeup", "skincare", "hair", "fragrances"].includes(c.category))
         .reduce((sum: number, c: { count: number }) => sum + c.count, 0)
     : undefined;
 
   const navItems = [
-    { href: "/", label: "Wardrobe", icon: Shirt, badge: wardrobeCount },
+    { href: "/", label: "Vanity", icon: Shirt, badge: wardrobeCount },
     { href: "/generate", label: "Generate", icon: Sparkles },
     { href: "/saved", label: "Saved", icon: Bookmark },
     { href: "/account", label: "Account", icon: UserCircle },

@@ -23,7 +23,7 @@ import { getImageUrl } from "@/lib/utils";
 
 const SEASON_OPTIONS    = ["", "Spring", "Summer", "Fall", "Winter", "All Season"];
 const OCCASION_OPTIONS  = ["", "Casual", "Work", "Formal", "Sport", "Special Event"];
-const CATEGORY_OPTIONS  = ["tops", "bottoms", "shoes", "dresses", "outerwear", "accessories"];
+const CATEGORY_OPTIONS  = ["makeup", "skincare", "hair", "fragrances"];
 
 function Field({
   label,
@@ -299,10 +299,8 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
           <Field label="Color"  value={form.color} onChange={patch("color") as (v: string) => void} placeholder="Navy Blue" />
         </div>
 
-        {/* Size — hidden for accessories */}
-        {item.category !== "accessories" && (
-          <Field label="Size" value={form.size} onChange={patch("size") as (v: string) => void} placeholder="S, M, L, 32, 8…" />
-        )}
+        {/* Size */}
+        <Field label="Size / Volume" value={form.size} onChange={patch("size") as (v: string) => void} placeholder="30ml, 50ml, Full Size…" />
 
         {/* Season + Occasion */}
         <div className="grid grid-cols-2 gap-3">
@@ -379,7 +377,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                        hover:border-red-500 hover:text-red-600 transition-all"
           >
             <Trash2 className="w-4 h-4" />
-            Delete from Closet Forever
+            Delete from Vanity Forever
           </button>
         ) : (
           <div className="flex gap-2">

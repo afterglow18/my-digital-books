@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddItemToOutfitBody,
   ClothingItem,
   ClothingItemInput,
   ClothingItemUpdate,
@@ -29,6 +30,7 @@ import type {
   HealthStatus,
   ListClothingParams,
   OutfitInput,
+  RenameOutfitBody,
   SavedOutfit,
   UploadUrlRequest,
   UploadUrlResponse,
@@ -806,6 +808,220 @@ export const useSaveOutfit = <TError = ErrorType<ErrorEnvelope>,
       return useMutation(getSaveOutfitMutationOptions(options));
     }
 
+export const getAddItemToOutfitUrl = (id: number,) => {
+
+
+
+
+  return `/api/outfits/${id}/items`
+}
+
+/**
+ * @summary Add an item to a saved outfit
+ */
+export const addItemToOutfit = async (id: number,
+    addItemToOutfitBody: AddItemToOutfitBody, options?: RequestInit): Promise<SavedOutfit> => {
+
+  return customFetch<SavedOutfit>(getAddItemToOutfitUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(addItemToOutfitBody)
+  }
+);}
+
+
+
+
+export const getAddItemToOutfitMutationOptions = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addItemToOutfit>>, TError,{id: number;data: BodyType<AddItemToOutfitBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addItemToOutfit>>, TError,{id: number;data: BodyType<AddItemToOutfitBody>}, TContext> => {
+
+const mutationKey = ['addItemToOutfit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addItemToOutfit>>, {id: number;data: BodyType<AddItemToOutfitBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addItemToOutfit(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddItemToOutfitMutationResult = NonNullable<Awaited<ReturnType<typeof addItemToOutfit>>>
+    export type AddItemToOutfitMutationBody = BodyType<AddItemToOutfitBody>
+    export type AddItemToOutfitMutationError = ErrorType<ErrorEnvelope>
+
+    /**
+ * @summary Add an item to a saved outfit
+ */
+export const useAddItemToOutfit = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addItemToOutfit>>, TError,{id: number;data: BodyType<AddItemToOutfitBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addItemToOutfit>>,
+        TError,
+        {id: number;data: BodyType<AddItemToOutfitBody>},
+        TContext
+      > => {
+      return useMutation(getAddItemToOutfitMutationOptions(options));
+    }
+
+export const getRemoveItemFromOutfitUrl = (id: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/outfits/${id}/items/${itemId}`
+}
+
+/**
+ * @summary Remove an item from an outfit
+ */
+export const removeItemFromOutfit = async (id: number,
+    itemId: number, options?: RequestInit): Promise<SavedOutfit> => {
+
+  return customFetch<SavedOutfit>(getRemoveItemFromOutfitUrl(id,itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRemoveItemFromOutfitMutationOptions = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeItemFromOutfit>>, TError,{id: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeItemFromOutfit>>, TError,{id: number;itemId: number}, TContext> => {
+
+const mutationKey = ['removeItemFromOutfit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeItemFromOutfit>>, {id: number;itemId: number}> = (props) => {
+          const {id,itemId} = props ?? {};
+
+          return  removeItemFromOutfit(id,itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveItemFromOutfitMutationResult = NonNullable<Awaited<ReturnType<typeof removeItemFromOutfit>>>
+
+    export type RemoveItemFromOutfitMutationError = ErrorType<ErrorEnvelope>
+
+    /**
+ * @summary Remove an item from an outfit
+ */
+export const useRemoveItemFromOutfit = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeItemFromOutfit>>, TError,{id: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeItemFromOutfit>>,
+        TError,
+        {id: number;itemId: number},
+        TContext
+      > => {
+      return useMutation(getRemoveItemFromOutfitMutationOptions(options));
+    }
+
+export const getRenameOutfitUrl = (id: number,) => {
+
+
+
+
+  return `/api/outfits/${id}`
+}
+
+/**
+ * @summary Rename a saved outfit
+ */
+export const renameOutfit = async (id: number,
+    renameOutfitBody: RenameOutfitBody, options?: RequestInit): Promise<SavedOutfit> => {
+
+  return customFetch<SavedOutfit>(getRenameOutfitUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(renameOutfitBody)
+  }
+);}
+
+
+
+
+export const getRenameOutfitMutationOptions = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameOutfit>>, TError,{id: number;data: BodyType<RenameOutfitBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof renameOutfit>>, TError,{id: number;data: BodyType<RenameOutfitBody>}, TContext> => {
+
+const mutationKey = ['renameOutfit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameOutfit>>, {id: number;data: BodyType<RenameOutfitBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  renameOutfit(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenameOutfitMutationResult = NonNullable<Awaited<ReturnType<typeof renameOutfit>>>
+    export type RenameOutfitMutationBody = BodyType<RenameOutfitBody>
+    export type RenameOutfitMutationError = ErrorType<ErrorEnvelope>
+
+    /**
+ * @summary Rename a saved outfit
+ */
+export const useRenameOutfit = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameOutfit>>, TError,{id: number;data: BodyType<RenameOutfitBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof renameOutfit>>,
+        TError,
+        {id: number;data: BodyType<RenameOutfitBody>},
+        TContext
+      > => {
+      return useMutation(getRenameOutfitMutationOptions(options));
+    }
+
 export const getDeleteOutfitUrl = (id: number,) => {
 
 
@@ -874,158 +1090,6 @@ export const useDeleteOutfit = <TError = ErrorType<ErrorEnvelope>,
         TContext
       > => {
       return useMutation(getDeleteOutfitMutationOptions(options));
-    }
-
-export const getRenameOutfitUrl = (id: number) => {
-  return `/api/outfits/${id}`
-}
-
-/**
- * @summary Rename a saved outfit
- */
-export const renameOutfit = async (id: number, data: { name?: string; notes?: string | null }, options?: RequestInit): Promise<SavedOutfit> => {
-  return customFetch<SavedOutfit>(getRenameOutfitUrl(id), {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(data),
-  });
-}
-
-export const getRenameOutfitMutationOptions = <TError = ErrorType<ErrorEnvelope>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameOutfit>>, TError,{id: number; data: { name?: string; notes?: string | null }}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof renameOutfit>>, TError,{id: number; data: { name?: string; notes?: string | null }}, TContext> => {
-
-const mutationKey = ['renameOutfit'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameOutfit>>, {id: number; data: { name?: string; notes?: string | null }}> = (props) => {
-          const {id, data} = props ?? {};
-          return renameOutfit(id, data, requestOptions)
-        }
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RenameOutfitMutationResult = NonNullable<Awaited<ReturnType<typeof renameOutfit>>>
-    export type RenameOutfitMutationError = ErrorType<ErrorEnvelope>
-
-    /**
- * @summary Rename a saved outfit
- */
-export const useRenameOutfit = <TError = ErrorType<ErrorEnvelope>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameOutfit>>, TError,{id: number; data: { name?: string; notes?: string | null }}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof renameOutfit>>,
-        TError,
-        {id: number; data: { name?: string; notes?: string | null }},
-        TContext
-      > => {
-      return useMutation(getRenameOutfitMutationOptions(options));
-    }
-
-export const getRemoveItemFromOutfitUrl = (id: number, itemId: number) => {
-  return `/api/outfits/${id}/items/${itemId}`
-}
-
-/**
- * @summary Remove an item from an outfit
- */
-export const removeItemFromOutfit = async (id: number, itemId: number, options?: RequestInit): Promise<SavedOutfit> => {
-  return customFetch<SavedOutfit>(getRemoveItemFromOutfitUrl(id, itemId), {
-    ...options,
-    method: 'DELETE',
-  });
-}
-
-export const getRemoveItemFromOutfitMutationOptions = <TError = ErrorType<ErrorEnvelope>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeItemFromOutfit>>, TError,{id: number; itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof removeItemFromOutfit>>, TError,{id: number; itemId: number}, TContext> => {
-
-const mutationKey = ['removeItemFromOutfit'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeItemFromOutfit>>, {id: number; itemId: number}> = (props) => {
-          const {id, itemId} = props ?? {};
-          return removeItemFromOutfit(id, itemId, requestOptions)
-        }
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RemoveItemFromOutfitMutationResult = NonNullable<Awaited<ReturnType<typeof removeItemFromOutfit>>>
-    export type RemoveItemFromOutfitMutationError = ErrorType<ErrorEnvelope>
-
-    /**
- * @summary Remove an item from an outfit
- */
-export const useRemoveItemFromOutfit = <TError = ErrorType<ErrorEnvelope>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeItemFromOutfit>>, TError,{id: number; itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof removeItemFromOutfit>>,
-        TError,
-        {id: number; itemId: number},
-        TContext
-      > => {
-      return useMutation(getRemoveItemFromOutfitMutationOptions(options));
-    }
-
-export const getAddItemToOutfitUrl = (id: number) => {
-  return `/api/outfits/${id}/items`
-}
-
-/**
- * @summary Add an item to an existing outfit
- */
-export const addItemToOutfit = async (id: number, itemId: number, options?: RequestInit): Promise<SavedOutfit> => {
-  return customFetch<SavedOutfit>(getAddItemToOutfitUrl(id),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify({ itemId })
-  }
-);}
-
-export const getAddItemToOutfitMutationOptions = <TError = ErrorType<ErrorEnvelope>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addItemToOutfit>>, TError,{id: number; itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof addItemToOutfit>>, TError,{id: number; itemId: number}, TContext> => {
-
-const mutationKey = ['addItemToOutfit'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addItemToOutfit>>, {id: number; itemId: number}> = (props) => {
-          const {id, itemId} = props ?? {};
-          return addItemToOutfit(id, itemId, requestOptions)
-        }
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AddItemToOutfitMutationResult = NonNullable<Awaited<ReturnType<typeof addItemToOutfit>>>
-    export type AddItemToOutfitMutationError = ErrorType<ErrorEnvelope>
-
-    /**
- * @summary Add an item to an existing outfit
- */
-export const useAddItemToOutfit = <TError = ErrorType<ErrorEnvelope>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addItemToOutfit>>, TError,{id: number; itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof addItemToOutfit>>,
-        TError,
-        {id: number; itemId: number},
-        TContext
-      > => {
-      return useMutation(getAddItemToOutfitMutationOptions(options));
     }
 
 export const getRequestUploadUrlUrl = () => {
