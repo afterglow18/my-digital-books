@@ -27,7 +27,7 @@ import {
   useListOutfits, getListOutfitsQueryKey,
   ClothingItem,
 } from "@workspace/api-client-react";
-import { X, Bookmark } from "lucide-react";
+import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClosetRow, ClosetRowHandle } from "@/components/ClosetRow";
 import { QuickAddSheet } from "@/components/clothing/QuickAddSheet";
@@ -329,27 +329,6 @@ export default function WardrobePage() {
           })}
 
 
-          {/* ── Favorites shortcut ── */}
-          <button
-            onClick={() => navigate("/favorites")}
-            data-testid="button-favorites"
-            aria-label="View favorites"
-            style={{
-              position: "absolute",
-              top:    pY(ir, 0.10),
-              right:  ir.left + pW(ir, 1 - LM.doorR) + 4,
-              width:  34,
-              height: 34,
-              borderRadius: "50%",
-              zIndex: 25,
-              background: "rgba(255,255,255,0.55)",
-              border: "1.5px solid rgba(220,150,160,0.35)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer",
-            }}
-          >
-            <Bookmark style={{ width: 15, height: 15, color: "#9a5060" }} />
-          </button>
         </>
       )}
 
