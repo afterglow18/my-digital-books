@@ -32,10 +32,10 @@ const LM = {
   doorL: 0.207,
   doorR: 0.801,
   rows: [
-    { sectionTop: 0.281, shelfY: 0.384, btnCY: 0.260 },  // MAKEUP
-    { sectionTop: 0.430, shelfY: 0.542, btnCY: 0.407 },  // SKINCARE
-    { sectionTop: 0.587, shelfY: 0.703, btnCY: 0.565 },  // HAIR
-    { sectionTop: 0.742, shelfY: 0.845, btnCY: 0.723 },  // FRAGRANCES
+    { sectionTop: 0.241, shelfY: 0.344, btnCY: 0.220 },  // MAKEUP
+    { sectionTop: 0.390, shelfY: 0.502, btnCY: 0.367 },  // SKINCARE
+    { sectionTop: 0.547, shelfY: 0.663, btnCY: 0.525 },  // HAIR
+    { sectionTop: 0.702, shelfY: 0.805, btnCY: 0.683 },  // FRAGRANCES
   ],
   // Action bar: from just below FRAGRANCES through the full bottom
   barY:   0.848,
