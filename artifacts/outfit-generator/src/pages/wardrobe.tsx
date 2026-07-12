@@ -77,11 +77,11 @@ const LM = {
 // ── useImageRect ─────────────────────────────────────────────────────────────
 interface ImgRect {
   top: number; left: number; width: number; height: number;
-  containerH: number;
+  containerH: number; containerW: number;
 }
 
 function useImageRect(containerRef: RefObject<HTMLDivElement>): ImgRect {
-  const [rect, setRect] = useState<ImgRect>({ top: 0, left: 0, width: 0, height: 0, containerH: 0 });
+  const [rect, setRect] = useState<ImgRect>({ top: 0, left: 0, width: 0, height: 0, containerH: 0, containerW: 0 });
   useEffect(() => {
     const compute = () => {
       const c = containerRef.current;
@@ -95,7 +95,7 @@ function useImageRect(containerRef: RefObject<HTMLDivElement>): ImgRect {
       } else {
         rW = cW; rH = cW / iR; rL = 0; rT = 0;
       }
-      setRect({ top: rT, left: rL, width: rW, height: rH, containerH: cH });
+      setRect({ top: rT, left: rL, width: rW, height: rH, containerH: cH, containerW: cW });
     };
     compute();
     window.addEventListener("resize", compute);
@@ -226,8 +226,8 @@ export default function WardrobePage() {
         style={{
           position: "absolute",
           top:    ready ? ir.top    : 0,
-          left:   ready ? ir.left   : 0,
-          width:  ready ? ir.width  : "100%",
+          left:   0,
+          width:  ready ? ir.containerW : "100%",
           height: ready ? ir.height : "auto",
           display: "block",
           pointerEvents: "none",
