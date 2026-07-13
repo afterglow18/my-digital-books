@@ -45,13 +45,7 @@ export default function WelcomePage({ onEnter }: Props) {
 
   const handleOpen = () => {
     if (phase !== "idle") return;
-    setPhase("opening");
-    // lid fully open → reveal full-screen image
-    setTimeout(() => setPhase("revealing"), 900);
-    // begin exit fade
-    setTimeout(() => setPhase("exiting"),   1800);
-    // fire route change
-    setTimeout(finish,                       2450);
+    finish();
   };
 
   const isOpen     = phase !== "idle";
