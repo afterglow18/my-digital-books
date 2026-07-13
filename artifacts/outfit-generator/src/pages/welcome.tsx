@@ -1,126 +1,27 @@
 /**
- * WelcomePage — Hollywood suitcase splash screen.
+ * WelcomePage — Brown suitcase splash screen.
  *
- * OFF  : deep-rose/charcoal mirror face, unlit glass bulbs around perimeter.
- * ON   : bulbs glow warm from top-centre outward (35 ms stagger), then the
- *        suitcase background fades in, then the screen dissolves → onEnter().
+ * IDLE     : brown suitcase closed on a dark background, title + button below.
+ * OPENING  : lid rotates open (3-D perspective flip), warm light floods from inside.
+ * GLOWING  : warm radial glow fills the screen.
+ * EXITING  : whole screen fades to transparent → onEnter().
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
-// ── Bulb layout ───────────────────────────────────────────────────────────────
-// Positions expressed as fractions of the container (0–1).
-function makeBulbs() {
-  const list: { id: number; fx: number; fy: number }[] = [];
-  let id = 0;
-  const add = (fx: number, fy: number) => list.push({ id: id++, fx, fy });
-
-  // Top — 9 bulbs
-  for (let i = 0; i < 9; i++) add(0.06 + 0.88 * (i / 8), 0.024);
-  // Left — 6 bulbs
-  for (let i = 0; i < 6; i++) add(0.026, 0.11 + 0.76 * (i / 5));
-  // Right — 6 bulbs
-  for (let i = 0; i < 6; i++) add(0.974, 0.11 + 0.76 * (i / 5));
-  // Bottom — 7 bulbs
-  for (let i = 0; i < 7; i++) add(0.08 + 0.84 * (i / 6), 0.952);
-
-  return list;
-}
-
-const BULBS = makeBulbs(); // 28 total
-
-// Light-up order: nearest to top-centre fires first
-const STAGGER_S = 0.035;
-const LIGHT_DELAY = new Map(
-  [...BULBS]
-    .sort((a, b) =>
-      Math.hypot(a.fx - 0.5, a.fy) - Math.hypot(b.fx - 0.5, b.fy)
-    )
-    .map((b, i) => [b.id, i * STAGGER_S])
-);
-
-// Total time until last bulb finishes (used to schedule image reveal)
-const LAST_DELAY_S = (BULBS.length - 1) * STAGGER_S + 0.3; // stagger + duration
-
-// ── Bulb component ────────────────────────────────────────────────────────────
-function Bulb({
-  fx, fy, lit, delay, size, cw, ch,
-}: {
-  fx: number; fy: number; lit: boolean; delay: number;
-  size: number; cw: number; ch: number;
-}) {
-  return (
-    <motion.div
-      style={{
-        position: "absolute",
-        left: cw * fx,
-        top: ch * fy,
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        transform: "translate(-50%, -50%)",
-        zIndex: 30,
-        pointerEvents: "none",
-        border: "2px solid",
-      }}
-      animate={
-        lit
-          ? {
-              backgroundColor: "#fff9cc",
-              borderColor: "#c8960a",
-              boxShadow: [
-                `0 0 ${size * 0.7}px ${size * 0.35}px rgba(255,246,150,0.85), 0 0 ${size * 1.8}px ${size * 0.9}px rgba(255,220,50,0.55)`,
-                `0 0 ${size * 1.0}px ${size * 0.5}px rgba(255,255,200,1.0),   0 0 ${size * 2.5}px ${size * 1.2}px rgba(255,230,60,0.65)`,
-                `0 0 ${size * 0.7}px ${size * 0.35}px rgba(255,246,150,0.85), 0 0 ${size * 1.8}px ${size * 0.9}px rgba(255,220,50,0.55)`,
-              ],
-            }
-          : {
-              backgroundColor: "#1c0d12",
-              borderColor: "#3d1f28",
-              boxShadow: "none",
-            }
-      }
-      transition={
-        lit
-          ? {
-              delay,
-              duration: 0.28,
-              ease: "easeOut",
-              boxShadow: {
-                delay: delay + 0.28,
-                duration: 1.6,
-                repeat: Infinity,
-                repeatType: "mirror",
-                ease: "easeInOut",
-              },
-            }
-          : { duration: 0.12 }
-      }
-    />
-  );
-}
+// ── Suitcase dimensions (px, will scale via container) ──────────────────────
+const SW  = 280;   // suitcase width
+const SH  = 196;   // suitcase total height
+const LH  = 88;    // lid height (top portion)
+const BH  = SH - LH; // body height (bottom portion)
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 interface Props { onEnter: () => void; }
 
 export default function WelcomePage({ onEnter }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [cw, setCw] = useState(0);
-  const [ch, setCh] = useState(0);
-  const [phase, setPhase] = useState<"off" | "lighting" | "revealing" | "exiting">("off");
+  const [phase, setPhase] = useState<"idle" | "opening" | "glowing" | "exiting">("idle");
   const calledRef = useRef(false);
-
-  // Measure container on mount and resize
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const update = () => { setCw(el.clientWidth); setCh(el.clientHeight); };
-    update();
-    const obs = new ResizeObserver(update);
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   const finish = useCallback(() => {
     if (calledRef.current) return;
@@ -128,203 +29,247 @@ export default function WelcomePage({ onEnter }: Props) {
     onEnter();
   }, [onEnter]);
 
-  const handleEnter = () => {
-    if (phase !== "off") return;
-    setPhase("lighting");
-
-    // Reveal the bg image after the last bulb lights up
-    setTimeout(() => setPhase("revealing"), LAST_DELAY_S * 1000);
-
-    // Fade out whole screen and fire onEnter
-    setTimeout(() => setPhase("exiting"), (LAST_DELAY_S + 0.85) * 1000);
-    setTimeout(finish, (LAST_DELAY_S + 1.5) * 1000);
+  const handleOpen = () => {
+    if (phase !== "idle") return;
+    setPhase("opening");
+    // lid fully open → flood screen with warmth
+    setTimeout(() => setPhase("glowing"),  950);
+    // begin fade-out
+    setTimeout(() => setPhase("exiting"), 1500);
+    // fire route change
+    setTimeout(finish, 2150);
   };
 
-  const lit        = phase !== "off";
-  const showImage  = phase === "revealing" || phase === "exiting";
-  const bulbSize   = cw > 0 ? Math.max(14, Math.round(Math.min(cw, ch) * 0.052)) : 18;
+  const isOpen   = phase !== "idle";
+  const isGlow   = phase === "glowing" || phase === "exiting";
 
   return (
     <motion.div
       animate={{ opacity: phase === "exiting" ? 0 : 1 }}
       transition={{ duration: 0.65, ease: "easeIn" }}
       style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 200,
-        background: "#08000a",
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "center",
+        position: "fixed", inset: 0, zIndex: 200,
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
       }}
     >
-      {/* ── Inner phone-width container ── */}
-      <div
-        ref={containerRef}
-        style={{
-          width: "100%",
-          maxWidth: 448,
-          height: "calc(100dvh - 90px)",
-          position: "relative",
-          overflow: "hidden",
+      {/* ── Animated background: dark brown → warm tan on open ── */}
+      <motion.div
+        style={{ position: "absolute", inset: 0 }}
+        animate={{
+          background: isGlow
+            ? "radial-gradient(ellipse 80% 60% at 50% 42%, #D4A464 0%, #8B5E3C 40%, #3A2010 100%)"
+            : isOpen
+              ? "radial-gradient(ellipse 60% 40% at 50% 42%, #7B4F2E 0%, #2C1608 60%, #0E0804 100%)"
+              : "#0E0804",
         }}
-      >
-        {/* Mirror face — dark rose, brightens slightly when lit */}
-        <motion.div
-          style={{ position: "absolute", inset: 0, zIndex: 1 }}
-          animate={{
-            background: lit
-              ? "linear-gradient(170deg, #5a0a28 0%, #200210 60%, #0e0008 100%)"
-              : "linear-gradient(170deg, #280410 0%, #0e0008 60%, #050003 100%)",
-          }}
-          transition={{ duration: 0.9, ease: "easeInOut" }}
-        />
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      />
 
-        {/* Suitcase background — fades in after bulbs light up */}
-        <motion.img
-          src="/briefcase-bg.png"
-          alt=""
-          draggable={false}
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            zIndex: 2,
-            userSelect: "none",
-            pointerEvents: "none",
-          }}
-          animate={{ opacity: showImage ? 1 : 0 }}
-          transition={{ duration: 0.9, ease: "easeIn" }}
-        />
+      {/* ── Main content ── */}
+      <div style={{
+        position: "relative", zIndex: 2,
+        display: "flex", flexDirection: "column", alignItems: "center",
+      }}>
 
-        {/* Ambient warm glow behind bulbs when lit */}
-        <motion.div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 3,
-            pointerEvents: "none",
-          }}
-          animate={{
-            background: lit
-              ? [
-                  "radial-gradient(ellipse 80% 12% at 50% 3%, rgba(255,230,100,0.18) 0%, transparent 100%), radial-gradient(ellipse 8% 60% at 2.6% 50%, rgba(255,220,80,0.12) 0%, transparent 100%), radial-gradient(ellipse 8% 60% at 97.4% 50%, rgba(255,220,80,0.12) 0%, transparent 100%)",
-                  "radial-gradient(ellipse 80% 12% at 50% 3%, rgba(255,240,120,0.26) 0%, transparent 100%), radial-gradient(ellipse 8% 60% at 2.6% 50%, rgba(255,230,90,0.18) 0%, transparent 100%), radial-gradient(ellipse 8% 60% at 97.4% 50%, rgba(255,230,90,0.18) 0%, transparent 100%)",
-                  "radial-gradient(ellipse 80% 12% at 50% 3%, rgba(255,230,100,0.18) 0%, transparent 100%), radial-gradient(ellipse 8% 60% at 2.6% 50%, rgba(255,220,80,0.12) 0%, transparent 100%), radial-gradient(ellipse 8% 60% at 97.4% 50%, rgba(255,220,80,0.12) 0%, transparent 100%)",
-                ]
-              : "none",
-          }}
-          transition={
-            lit
-              ? { delay: LAST_DELAY_S * 0.5, duration: 1.6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }
-              : { duration: 0.2 }
-          }
-        />
+        {/* ── Handle ── */}
+        <div style={{
+          width: 62, height: 26,
+          borderRadius: "31px 31px 0 0",
+          border: "5px solid #7B5030",
+          borderBottom: "none",
+          background: "transparent",
+          marginBottom: -3,
+          position: "relative", zIndex: 2,
+          boxShadow: "inset 0 2px 4px rgba(0,0,0,0.35)",
+        }} />
 
-        {/* ── Bulbs ── */}
-        {cw > 0 && BULBS.map((b) => (
-          <Bulb
-            key={b.id}
-            fx={b.fx} fy={b.fy}
-            lit={lit}
-            delay={LIGHT_DELAY.get(b.id) ?? 0}
-            size={bulbSize}
-            cw={cw} ch={ch}
+        {/* ── Suitcase wrapper — provides perspective for lid flip ── */}
+        <div style={{
+          width: SW, height: SH,
+          position: "relative",
+          perspective: 700,
+        }}>
+
+          {/* Inner warm glow (behind lid, z below lid) */}
+          <motion.div
+            style={{
+              position: "absolute", top: 0, left: 6, right: 6, height: LH + 4,
+              borderRadius: "10px 10px 0 0",
+              zIndex: 3,
+              background: "radial-gradient(ellipse at 50% 100%, rgba(255,210,100,1) 0%, rgba(230,150,50,0.8) 50%, transparent 100%)",
+              filter: "blur(4px)",
+            }}
+            animate={{ opacity: isOpen ? 1 : 0 }}
+            transition={{ duration: 0.35, delay: isOpen ? 0.35 : 0 }}
           />
-        ))}
+
+          {/* ── LID — rotates open ── */}
+          <motion.div
+            style={{
+              position: "absolute", top: 0, left: 0, right: 0,
+              height: LH,
+              borderRadius: "12px 12px 0 0",
+              border: "2.5px solid #2A1408",
+              borderBottom: "1.5px solid #4A2E14",
+              transformOrigin: "top center",
+              zIndex: 5,
+              overflow: "hidden",
+              background: "linear-gradient(160deg, #9B6A42 0%, #6B4020 55%, #8B5830 100%)",
+              boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.3), inset 0 3px 8px rgba(255,255,255,0.06)",
+            }}
+            animate={isOpen
+              ? { rotateX: -172, opacity: [1, 1, 1, 0.6, 0] }
+              : { rotateX: 0,    opacity: 1 }
+            }
+            transition={{ duration: 0.9, ease: [0.3, 0, 0.15, 1] }}
+          >
+            {/* Lid stitching */}
+            <div style={{ position: "absolute", top: 10, left: 16, right: 16, height: 1, background: "rgba(255,255,255,0.08)", borderRadius: 1 }} />
+            <div style={{ position: "absolute", top: 14, left: 16, right: 16, height: 1, background: "rgba(255,255,255,0.04)", borderRadius: 1 }} />
+            {/* Subtle sheen */}
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, height: "35%",
+              background: "linear-gradient(to bottom, rgba(255,255,255,0.09), transparent)",
+              borderRadius: "10px 10px 0 0",
+            }} />
+          </motion.div>
+
+          {/* ── SEAM + CLASPS (always visible, sits between lid and body) ── */}
+          <div style={{
+            position: "absolute", top: LH - 7, left: 0, right: 0,
+            height: 14,
+            background: "#1C0A04",
+            zIndex: 6,
+            display: "flex", alignItems: "center",
+          }}>
+            {/* Left clasp */}
+            <div style={{
+              position: "absolute", left: "26%",
+              transform: "translateX(-50%)",
+              width: 20, height: 11,
+              background: "linear-gradient(to bottom, #F0D060, #A07828)",
+              borderRadius: 3,
+              border: "1px solid #7A5818",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.25)",
+            }} />
+            {/* Right clasp */}
+            <div style={{
+              position: "absolute", left: "74%",
+              transform: "translateX(-50%)",
+              width: 20, height: 11,
+              background: "linear-gradient(to bottom, #F0D060, #A07828)",
+              borderRadius: 3,
+              border: "1px solid #7A5818",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.25)",
+            }} />
+          </div>
+
+          {/* ── BODY ── */}
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0,
+            height: BH,
+            borderRadius: "0 0 12px 12px",
+            border: "2.5px solid #2A1408",
+            borderTop: "none",
+            background: "linear-gradient(to bottom, #6B4020 0%, #9B6A42 100%)",
+            boxShadow: "inset 0 3px 8px rgba(0,0,0,0.25), inset 0 -2px 6px rgba(255,255,255,0.04)",
+            overflow: "hidden",
+          }}>
+            {/* Body stitching */}
+            <div style={{ position: "absolute", bottom: 14, left: 16, right: 16, height: 1, background: "rgba(255,255,255,0.06)", borderRadius: 1 }} />
+            <div style={{ position: "absolute", bottom: 10, left: 16, right: 16, height: 1, background: "rgba(255,255,255,0.03)", borderRadius: 1 }} />
+            {/* Side rivets */}
+            {[14, SW - 14].map((x) => (
+              <div key={x} style={{
+                position: "absolute",
+                left: x === 14 ? 8 : undefined,
+                right: x !== 14 ? 8 : undefined,
+                top: "50%", transform: "translateY(-50%)",
+                width: 7, height: 7,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #D4A850, #7A5020)",
+                border: "1px solid #5A3A10",
+              }} />
+            ))}
+          </div>
+
+          {/* ── Wheels ── */}
+          {[28, SW - 28].map((x, i) => (
+            <div key={i} style={{
+              position: "absolute", bottom: -9, left: x,
+              transform: "translateX(-50%)",
+              width: 16, height: 10,
+              borderRadius: "0 0 8px 8px",
+              background: "#1C0A04",
+              border: "1.5px solid #0A0402",
+            }}>
+              <div style={{
+                position: "absolute", top: 2, left: "50%",
+                transform: "translateX(-50%)",
+                width: 8, height: 6,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.08)",
+              }} />
+            </div>
+          ))}
+        </div>
 
         {/* ── Title ── */}
         <motion.div
-          style={{
-            position: "absolute",
-            top: "36%",
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            textAlign: "center",
-            pointerEvents: "none",
-            padding: "0 48px",
-          }}
-          animate={{
-            opacity: showImage ? 0 : 1,
-          }}
-          transition={{ duration: 0.5 }}
+          style={{ marginTop: 44, textAlign: "center" }}
+          animate={{ opacity: isGlow ? 0 : 1 }}
+          transition={{ duration: 0.35 }}
         >
-          <div
-            style={{
-              fontFamily: "var(--font-display, serif)",
-              fontWeight: 900,
-              fontSize: "clamp(30px, 9vw, 44px)",
-              letterSpacing: "-0.02em",
-              lineHeight: 1.1,
-              color: lit ? "#fff8ee" : "rgba(255,210,225,0.45)",
-              textShadow: lit
-                ? "0 0 28px rgba(255,210,100,0.55), 0 2px 10px rgba(0,0,0,0.7)"
-                : "none",
-              transition: "color 0.9s ease, text-shadow 0.9s ease",
-            }}
-          >
-            MY DIGITAL
-            <br />
-            SUITCASE
+          <div style={{
+            fontFamily: "var(--font-display, serif)",
+            fontWeight: 900,
+            fontSize: "clamp(28px, 8vw, 42px)",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.1,
+            color: "#E8D4B0",
+          }}>
+            MY DIGITAL<br />SUITCASE
           </div>
-          <div
-            style={{
-              marginTop: 10,
-              fontSize: 12,
-              fontWeight: 500,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase" as const,
-              color: lit ? "rgba(255,230,180,0.6)" : "rgba(255,180,200,0.25)",
-              transition: "color 0.9s ease",
-            }}
-          >
-            your beauty collection
+          <div style={{
+            marginTop: 9,
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: "0.25em",
+            textTransform: "uppercase" as const,
+            color: "rgba(232,212,176,0.42)",
+          }}>
+            your travel collection
           </div>
         </motion.div>
 
-        {/* ── "Enter Suitcase" button ── */}
-        <motion.div
-          style={{
-            position: "absolute",
-            bottom: "13%",
-            left: 0,
-            right: 0,
-            display: "flex",
-            justifyContent: "center",
-            zIndex: 40,
-          }}
+        {/* ── "Open Suitcase" button ── */}
+        <motion.button
+          onClick={handleOpen}
           animate={{
-            opacity: phase === "off" ? 1 : 0,
-            y: phase === "off" ? 0 : 10,
-            pointerEvents: phase === "off" ? "auto" : "none",
+            opacity: phase === "idle" ? 1 : 0,
+            y:       phase === "idle" ? 0 : 8,
+            pointerEvents: phase === "idle" ? "auto" : "none",
           }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.2 }}
+          style={{
+            marginTop: 36,
+            fontFamily: "var(--font-display, sans-serif)",
+            fontWeight: 800,
+            fontSize: 15,
+            letterSpacing: "0.03em",
+            color: "#3A2210",
+            background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
+            border: "1.5px solid #B8894E",
+            borderRadius: 100,
+            padding: "13px 40px",
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(120,80,40,0.45), 2px 2px 0 rgba(0,0,0,0.7)",
+            whiteSpace: "nowrap",
+          }}
         >
-          <button
-            onClick={handleEnter}
-            style={{
-              fontFamily: "var(--font-display, sans-serif)",
-              fontWeight: 800,
-              fontSize: 15,
-              letterSpacing: "0.03em",
-              color: "#fff",
-              background: "rgba(160,10,60,0.60)",
-              border: "1.5px solid rgba(255,140,170,0.45)",
-              borderRadius: 100,
-              padding: "13px 38px",
-              cursor: "pointer",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              whiteSpace: "nowrap",
-              boxShadow: "0 4px 28px rgba(160,0,60,0.45), inset 0 1px 0 rgba(255,255,255,0.12)",
-            }}
-          >
-            Enter Suitcase ✨
-          </button>
-        </motion.div>
+          Open Suitcase ✨
+        </motion.button>
       </div>
 
       {/* ── Footer links ── */}
@@ -332,28 +277,22 @@ export default function WelcomePage({ onEnter }: Props) {
         style={{
           position: "fixed",
           bottom: "calc(env(safe-area-inset-bottom) + 10px)",
-          left: 0,
-          right: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 4,
+          left: 0, right: 0,
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
           zIndex: 210,
         }}
       >
         <a
           href="https://classy-alpaca-441.notion.site/Privacy-Policy-39682db6065380b19dedcb108d4a0ef4"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.3)", textDecoration: "none", letterSpacing: "0.02em" }}
+          target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.25)", textDecoration: "none", letterSpacing: "0.02em" }}
         >
           Privacy Policy
         </a>
         <a
           href="https://app.notion.com/p/My-Digital-Closet-Support-39782db60653802a9088dcbae84c0527?source=copy_link"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.3)", textDecoration: "none", letterSpacing: "0.02em" }}
+          target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.25)", textDecoration: "none", letterSpacing: "0.02em" }}
         >
           Support
         </a>
