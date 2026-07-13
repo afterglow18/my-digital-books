@@ -241,7 +241,7 @@ export default function WardrobePage() {
           {/* ── Page title ── */}
           <div style={{
             position: "absolute",
-            top: pY(ir, 0.018), left: "50%",
+            top: pY(ir, 0.006), left: "50%",
             transform: "translateX(-50%)",
             zIndex: 25,
             textAlign: "center",
