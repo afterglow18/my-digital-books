@@ -143,6 +143,13 @@ const PHOTO_TIPS = [
   "Keep all items fully in frame.",
 ] as const;
 
+const CATEGORY_EXAMPLES: Record<string, { emoji: string; items: string[] }> = {
+  outfits:    { emoji: "👗", items: ["Tops", "Bottoms", "Shoes", "Swim", "Undergarments", "Dresses", "Accessories"] },
+  beauty:     { emoji: "💄", items: ["Makeup", "Skincare", "Hair", "Jewelry", "Nail Polish"] },
+  toiletries: { emoji: "🪥", items: ["Shower", "Dental", "Medicine", "Feminine Care", "First Aid"] },
+  essentials: { emoji: "🧳", items: ["Travel Docs", "Tech", "Snacks", "Books", "Accessories"] },
+};
+
 export function QuickAddSheet({ open, onOpenChange, category, existingCount, onCreated }: Props) {
   const [phase,    setPhase]   = useState<Phase>("pick");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -309,6 +316,19 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
                   </span>
                 </button>
               </div>
+
+              {/* What to add */}
+              {CATEGORY_EXAMPLES[category] && (
+                <div className="border-2 border-black rounded-2xl bg-white p-4
+                                shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                  <p className="font-display font-bold text-sm uppercase tracking-tight mb-2 flex items-center gap-2">
+                    <span>{CATEGORY_EXAMPLES[category].emoji}</span> WHAT TO ADD
+                  </p>
+                  <p className="text-sm text-black/70 leading-snug">
+                    {CATEGORY_EXAMPLES[category].items.join(", ")}
+                  </p>
+                </div>
+              )}
 
               {/* Photo tips */}
               <div className="border-2 border-black rounded-2xl bg-white p-4
