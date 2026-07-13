@@ -547,6 +547,7 @@ export default function GeneratePage() {
                       disabled={!canSave}
                       style={{
                         flexGrow: 1, flexShrink: 1, flexBasis: "0%", minWidth: 0,
+                        marginLeft: -10,
                         height: 44, borderRadius: 24,
                         border: "2.5px solid #B8894E",
                         background: canSave ? "#fff" : "rgba(240,240,240,0.80)",
