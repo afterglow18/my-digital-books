@@ -64,10 +64,10 @@ const LM = {
   doorR: 0.801,  // inner right wall
 
   rows: [
-    { sectionTop: 0.130, shelfY: 0.225, btnCY: 0.110 },  // OUTFITS  (lid, upper)
-    { sectionTop: 0.265, shelfY: 0.360, btnCY: 0.245 },  // BEAUTY   (lid, lower)
-    { sectionTop: 0.465, shelfY: 0.578, btnCY: 0.445 },  // TOILETRIES (body, upper)
-    { sectionTop: 0.620, shelfY: 0.730, btnCY: 0.600 },  // ESSENTIALS (body, lower)
+    { sectionTop: 0.170, shelfY: 0.265, btnCY: 0.150 },  // OUTFITS  (lid, upper)
+    { sectionTop: 0.305, shelfY: 0.400, btnCY: 0.285 },  // BEAUTY   (lid, lower)
+    { sectionTop: 0.505, shelfY: 0.618, btnCY: 0.485 },  // TOILETRIES (body, upper)
+    { sectionTop: 0.660, shelfY: 0.770, btnCY: 0.640 },  // ESSENTIALS (body, lower)
   ],
 
   saveAreaY: 0.84,
