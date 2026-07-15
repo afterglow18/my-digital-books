@@ -136,10 +136,18 @@ workflows:
 
       - name: Export IPA
         script: |
+          echo "=== Profiles on disk before export ==="
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "EMPTY — no profiles directory"
+          ls -la ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/ 2>/dev/null || echo "EMPTY — no Xcode profiles directory"
+          echo "=== Export options plist ==="
+          cat /Users/builder/export_options.plist 2>/dev/null || echo "export_options.plist not found, falling back to app-store/ExportOptions.plist"
+          PLIST=/Users/builder/export_options.plist
+          [ -f "$PLIST" ] || PLIST=app-store/ExportOptions.plist
+          echo "=== Using plist: $PLIST ==="
           xcodebuild \
             -exportArchive \
             -archivePath "$CM_BUILD_DIR/build/App.xcarchive" \
-            -exportOptionsPlist /Users/builder/export_options.plist \
+            -exportOptionsPlist "$PLIST" \
             -exportPath "$CM_BUILD_DIR/build/ipa"
 
       - name: Upload to TestFlight
