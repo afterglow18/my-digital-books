@@ -34,6 +34,7 @@ workflows:
         BUNDLE_ID: com.mydigitalbooks.app
         TEAM_ID: 2A78MFVCJS
         APP_STORE_CONNECT_ISSUER_ID: 66d4ce13-148d-4d6b-bab8-f1d0d8441a1e
+        APP_STORE_CONNECT_KEY_IDENTIFIER: FC9CKX69M4
         PROFILE_NAME: My Digital Books
 
     scripts:
