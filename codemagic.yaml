@@ -36,6 +36,7 @@ workflows:
         APP_STORE_CONNECT_KEY_IDENTIFIER: FC9CKX69M4
         PROFILE_NAME: My Digital Books
         VITE_API_BASE_URL: https://my-digital-books.replit.app/api
+        GIT_LFS_SKIP_SMUDGE: "1"
 
     scripts:
       - name: Install pnpm and dependencies

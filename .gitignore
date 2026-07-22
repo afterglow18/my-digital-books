@@ -47,3 +47,11 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Large media files — not needed for builds
+*.mov
+*.MOV
+*.mp4
+*.MP4
+attached_assets/*.mov
+attached_assets/*.mp4
