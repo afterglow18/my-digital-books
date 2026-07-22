@@ -15,6 +15,16 @@ const config: CapacitorConfig = {
     backgroundColor: '#F9F4EE',
     // Allow inline media playback (used for wardrobe image previews)
     allowsInlineMediaPlayback: true,
+    // Privacy usage descriptions — required by iOS TCC; missing any one causes
+    // a SIGABRT crash or silent refusal when the camera/photo picker is opened.
+    infoPlist: {
+      NSCameraUsageDescription:
+        'My Digital Books uses your camera to photograph clothing items for your wardrobe.',
+      NSPhotoLibraryUsageDescription:
+        'My Digital Books reads your photo library so you can add clothing photos to your wardrobe.',
+      NSPhotoLibraryAddUsageDescription:
+        'My Digital Books saves photos you capture to your photo library.',
+    },
   },
 
   plugins: {
