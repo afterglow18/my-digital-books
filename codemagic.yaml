@@ -161,12 +161,14 @@ workflows:
 
       - name: Upload to TestFlight
         script: |
+          printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/auth_key.p8
           app-store-connect publish \
             --path "$CM_BUILD_DIR/build/ipa/App.ipa" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            --private-key /tmp/auth_key.p8 \
             --testflight
+          rm -f /tmp/auth_key.p8
 
     artifacts:
       - $CM_BUILD_DIR/build/ipa/*.ipa
