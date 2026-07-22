@@ -9,6 +9,7 @@
 import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { X, Check } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { useEntitlements, PurchaseResult } from "@/hooks/useEntitlements";
 import { useSubscription } from "@/lib/revenuecat";
 import type { PurchaseProduct } from "@/lib/entitlements";
@@ -36,14 +37,23 @@ export function PremiumSheet({ onClose }: Props) {
   const { purchase } = useEntitlements();
   const { restore, isRestoring } = useSubscription();
   const [pending, setPending] = useState<PurchaseProduct | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
 
   const handlePurchase = useCallback(
     async (product: PurchaseProduct) => {
       if (pending) return;
+      setError(null);
+      if (!Capacitor.isNativePlatform()) {
+        setError("Purchases are only available in the iOS app.");
+        return;
+      }
       setPending(product);
       const result: PurchaseResult = await purchase(product);
       if (result === "success") {
         onClose();
+      } else if (result === "unavailable") {
+        setPending(null);
+        setError("Products could not be loaded. Please close and try again.");
       } else {
         setPending(null);
       }
@@ -112,6 +122,11 @@ export function PremiumSheet({ onClose }: Props) {
 
       {/* CTA footer */}
       <div className="px-5 pb-6 pt-4 bg-white border-t-2 border-black flex flex-col gap-3 flex-shrink-0">
+        {error && (
+          <p className="text-xs font-semibold text-red-600 text-center px-2">
+            {error}
+          </p>
+        )}
         {/* Primary: Pro Stylist */}
         <button
           onClick={() => handlePurchase("premium")}

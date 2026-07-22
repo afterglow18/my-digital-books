@@ -12,6 +12,7 @@
 import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { X, Check } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { useSubscription } from "@/lib/revenuecat";
 
 export type UpgradeReason = "items" | "outfits" | "mannequin";
@@ -132,6 +133,7 @@ export function UpgradeSheet({ reason, onClose }: Props) {
   const { offerings, purchase, restore, isRestoring } = useSubscription();
   const [selected, setSelected] = useState<TierId>("lifetime");
   const [status,   setStatus]   = useState<"idle" | "pending">("idle");
+  const [error,    setError]    = useState<string | null>(null);
 
   const prices: Record<TierId, string> = {
     monthly:  getLivePrice(offerings, "$rc_monthly",  "$1.99"),
@@ -147,16 +149,27 @@ export function UpgradeSheet({ reason, onClose }: Props) {
 
   const handlePurchase = useCallback(async () => {
     if (status === "pending") return;
+    setError(null);
+    if (!Capacitor.isNativePlatform()) {
+      setError("Purchases are only available in the iOS app.");
+      return;
+    }
     setStatus("pending");
     const pkg = getRcPackage(offerings, TIER_DEFAULTS[selected].pkgId);
-    if (!pkg) { setStatus("idle"); return; }
+    if (!pkg) {
+      setStatus("idle");
+      setError("Products could not be loaded. Please close and try again.");
+      return;
+    }
     try {
       await purchase(pkg);
       onClose();
     } catch (err: unknown) {
       setStatus("idle");
       const msg = err instanceof Error ? err.message.toLowerCase() : "";
-      if (!msg.includes("cancel") && !msg.includes("dismiss")) console.error("Purchase error:", err);
+      if (msg.includes("cancel") || msg.includes("dismiss")) return;
+      console.error("Purchase error:", err);
+      setError("Something went wrong. Please try again.");
     }
   }, [status, offerings, selected, purchase, onClose]);
 
@@ -245,6 +258,11 @@ export function UpgradeSheet({ reason, onClose }: Props) {
         className="px-5 pt-2 flex flex-col gap-2 flex-shrink-0"
         style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
       >
+        {error && (
+          <p className="text-xs font-semibold text-red-600 text-center px-2 -mb-1">
+            {error}
+          </p>
+        )}
         <button
           onClick={handlePurchase}
           disabled={status === "pending"}
