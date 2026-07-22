@@ -55,3 +55,4 @@ Thumbs.db
 *.MP4
 attached_assets/*.mov
 attached_assets/*.mp4
+*.p8
