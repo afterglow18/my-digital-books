@@ -20,6 +20,7 @@ import {
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClosetRow, ClosetRowHandle } from "@/components/ClosetRow";
+import { useLayoutContext } from "@/components/layout/AppLayout";
 import { useQueryClient } from "@tanstack/react-query";
 
 // ── Layout constants (same as wardrobe.tsx) ───────────────────────────────────
@@ -85,6 +86,7 @@ const MIN_SPIN_MS = 1600;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function GeneratePage() {
+  const { navHeight } = useLayoutContext();
   const containerRef = useRef<HTMLDivElement>(null!);
   const ir    = useImageRect(containerRef);
   const ready = ir.width > 0;
@@ -238,7 +240,7 @@ export default function GeneratePage() {
       style={{
         position: "relative",
         width: "100%",
-        height: `calc(100dvh - ${NAV_H}px)`,
+        height: `calc(100dvh - ${navHeight}px)`,
         overflow: "hidden",
         background: "#C8B9A2",
       }}

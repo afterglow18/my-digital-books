@@ -28,6 +28,7 @@ import {
   useSaveOutfit,
   type ClothingItem,
 } from "@/hooks/useLocalDB";
+import { useLayoutContext } from "@/components/layout/AppLayout";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClosetRow, ClosetRowHandle } from "@/components/ClosetRow";
@@ -105,6 +106,7 @@ const pY = (ir: ImgRect, f: number) => ir.top    + ir.height * f;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function WardrobePage() {
+  const { navHeight } = useLayoutContext();
   const containerRef = useRef<HTMLDivElement>(null!);
   const ir = useImageRect(containerRef);
 
@@ -207,7 +209,7 @@ export default function WardrobePage() {
       style={{
         position: "relative",
         width: "100%",
-        height: `calc(100dvh - ${NAV_H}px)`,
+        height: `calc(100dvh - ${navHeight}px)`,
         overflow: "hidden",
         background: "#C8B9A2",
       }}
