@@ -35,10 +35,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 const CATEGORY_LABELS: Record<string, string> = {
-  outfits:    "Outfits",
-  beauty:     "Beauty",
-  toiletries: "Toiletries",
-  essentials: "Essentials",
+  outfits:    "Fiction",
+  beauty:     "Non-Fiction",
+  toiletries: "Self-Help",
+  essentials: "Wishlisted",
 };
 
 const ORDER_KEY = "closet-favorites-order";
@@ -207,7 +207,7 @@ export default function FavoritesPage() {
           </div>
           <h3 className="font-display font-bold text-xl mb-2">No faves yet.</h3>
           <p className="text-sm font-medium text-muted-foreground">
-            Tap any item in your suitcase, then tap the ❤️ to save it here.
+            Tap any item in your library, then tap the ❤️ to save it here.
           </p>
         </div>
       )}

@@ -248,7 +248,7 @@ export default function GeneratePage() {
       {/* ── Background image — object-fit:cover avoids WebKit negative-left clipping bug ── */}
       <img
         src="/suitcase-open-bg.jpg"
-        alt="My Digital Suitcase"
+        alt="My Digital Books"
         style={{
           position: "absolute",
           top: 0, left: 0,
@@ -289,7 +289,7 @@ export default function GeneratePage() {
                 color: "#1a0800",
                 lineHeight: 1.1,
               }}>
-                MY DIGITAL SUITCASE
+                MY DIGITAL BOOKS
               </div>
               <div style={{
                 fontFamily: "var(--font-display, serif)",
@@ -301,7 +301,7 @@ export default function GeneratePage() {
                 color: "#1a0800",
                 lineHeight: 1.1,
               }}>
-                MATCHMAKER
+                BOOK FINDER
               </div>
             </div>
 
@@ -314,7 +314,8 @@ export default function GeneratePage() {
               const btnCY  = pY(ir, lm.btnCY);
               const btnH   = Math.max(32, pH(ir, 0.045));
 
-              const label = key.toUpperCase();
+              const BOOK_LABELS: Record<string, string> = { outfits: "FICTION", beauty: "NON-FICTION", toiletries: "SELF-HELP", essentials: "WISHLISTED" };
+              const label = BOOK_LABELS[key] ?? key.toUpperCase();
               const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08);
 
               return (
@@ -411,7 +412,7 @@ export default function GeneratePage() {
                     padding: "3px 11px", borderRadius: 20,
                     whiteSpace: "nowrap",
                   }}>
-                    Packing your suitcase…
+                    Browsing your library…
                   </span>
                 </motion.div>
               )}
@@ -437,13 +438,13 @@ export default function GeneratePage() {
                   letterSpacing: "0.07em", textTransform: "uppercase",
                   color: "#3A2210", fontFamily: "var(--font-display)", margin: 0,
                 }}>
-                  Your suitcase is empty
+                  Your library is empty
                 </p>
                 <p style={{
                   fontSize: 11, color: "#9a5060",
                   marginTop: 5, lineHeight: 1.5,
                 }}>
-                  Add outfits, beauty, toiletries or essentials in the Suitcase tab first.
+                  Add fiction, non-fiction, self-help or wishlisted titles in the Books tab first.
                 </p>
               </div>
             )}
@@ -507,7 +508,7 @@ export default function GeneratePage() {
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
                     }}
                   >
-                    ✨ Spin It!
+                    ✨ Pick for Me
                   </motion.button>
                 )}
 
@@ -575,7 +576,7 @@ export default function GeneratePage() {
                         gap: 2, padding: "0 12px",
                       }}
                     >
-                      <span>Repack</span>
+                      <span>Try Again</span>
                       <span style={{ fontSize: 14, lineHeight: 1 }}>✨</span>
                     </button>
 

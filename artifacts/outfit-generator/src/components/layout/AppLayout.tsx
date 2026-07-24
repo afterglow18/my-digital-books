@@ -117,7 +117,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     : undefined;
 
   const navItems: NavItemDef[] = [
-    { href: "/",         label: "Suitcase", icon: Shirt,    badge: wardrobeCount },
+    { href: "/",         label: "Books",    icon: Shirt,    badge: wardrobeCount },
     { href: "/generate", label: "Generate", icon: Sparkles  },
     { href: "/saved",    label: "Saved",    icon: Bookmark  },
     { href: "/account",  label: "Settings", icon: Settings  },

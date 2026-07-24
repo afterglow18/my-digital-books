@@ -44,10 +44,10 @@ type RowKey   = "outfits" | "beauty" | "toiletries" | "essentials";
 type Category = "outfits" | "beauty" | "toiletries" | "essentials";
 
 const ROWS: { key: RowKey; btnLabel: string }[] = [
-  { key: "outfits",    btnLabel: "+ ADD OUTFITS"    },
-  { key: "beauty",     btnLabel: "+ ADD BEAUTY"     },
-  { key: "toiletries", btnLabel: "+ ADD TOILETRIES" },
-  { key: "essentials", btnLabel: "+ ADD ESSENTIALS" },
+  { key: "outfits",    btnLabel: "+ ADD FICTION"     },
+  { key: "beauty",     btnLabel: "+ ADD NON-FICTION" },
+  { key: "toiletries", btnLabel: "+ ADD SELF-HELP"   },
+  { key: "essentials", btnLabel: "+ ADD WISHLISTED"  },
 ];
 
 // ── Image constants ───────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ export default function WardrobePage() {
       {/* ── Background image — object-fit:cover avoids WebKit negative-left clipping bug ── */}
       <img
         src="/suitcase-open-bg.jpg"
-        alt="My Digital Suitcase"
+        alt="My Digital Books"
         style={{
           position: "absolute",
           top: 0, left: 0,
@@ -254,7 +254,7 @@ export default function WardrobePage() {
               color: "#1a0800",
               lineHeight: 1.1,
             }}>
-              MY DIGITAL SUITCASE
+              MY DIGITAL BOOKS
             </div>
           </div>
 
@@ -423,7 +423,7 @@ export default function WardrobePage() {
           {/* ── SAVE circular button — covers the baked-in circle ── */}
           <button
             onClick={() => { setSaveName(""); setIsSaveOpen(true); }}
-            aria-label="Save current case"
+            aria-label="Save current list"
             style={{
               position: "absolute",
               top:    pY(ir, 0.9466) - pW(ir, 0.074),
@@ -446,7 +446,7 @@ export default function WardrobePage() {
             }}
           >
             <span style={{ fontSize: pW(ir, 0.022), fontWeight: 900, color: "#3A2210", letterSpacing: "0.06em", fontFamily: "var(--font-display)" }}>SAVE</span>
-            <span style={{ fontSize: pW(ir, 0.019), fontWeight: 800, color: "#3A2210", letterSpacing: "0.04em", fontFamily: "var(--font-display)" }}>CASE 🤎</span>
+            <span style={{ fontSize: pW(ir, 0.019), fontWeight: 800, color: "#3A2210", letterSpacing: "0.04em", fontFamily: "var(--font-display)" }}>LIST 🤎</span>
           </button>
         </>
       )}
@@ -480,12 +480,12 @@ export default function WardrobePage() {
               {saveSuccess ? (
                 <div style={{ textAlign: "center", padding: "12px 0" }}>
                   <div style={{ fontSize: 32, marginBottom: 8 }}>💕</div>
-                  <p style={{ fontWeight: 800, fontSize: 16, fontFamily: "var(--font-display)" }}>Case saved!</p>
+                  <p style={{ fontWeight: 800, fontSize: 16, fontFamily: "var(--font-display)" }}>List saved!</p>
                 </div>
               ) : (
                 <>
                   <p style={{ fontWeight: 800, fontSize: 15, fontFamily: "var(--font-display)", marginBottom: 12 }}>
-                    Name this case
+                    Name this list
                   </p>
                   <input
                     autoFocus
