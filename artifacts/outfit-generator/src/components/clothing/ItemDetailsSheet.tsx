@@ -389,6 +389,17 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                 <><Sparkles className="w-3.5 h-3.5" /> Clean Up Photo</>
               )}
             </button>
+            {bgState === "processing" && (
+              <button
+                onClick={handleCloseBgOverlay}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-xl
+                           border-2 border-black/20 text-xs font-bold uppercase tracking-wide
+                           text-black/50 bg-transparent
+                           active:opacity-60 transition-all"
+              >
+                Use Original Instead
+              </button>
+            )}
             {bgError && (
               <p className="text-xs text-red-600 text-center">{bgError}</p>
             )}
