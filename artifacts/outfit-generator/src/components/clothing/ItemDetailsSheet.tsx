@@ -3,11 +3,16 @@
  * Every field is optional and editable. A "Save" button appears only when
  * the form is dirty. Delete is always available.
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Heart, Trash2, Save, ChevronDown,
+  X, Heart, Trash2, Save, ChevronDown, Loader2, Sparkles, Check,
 } from "lucide-react";
+import {
+  removeBackground,
+  blobToDataUrl,
+  dataUrlToBlob,
+} from "@/lib/backgroundRemoval";
 import {
   type ClothingItem,
   type ClothingItemUpdateCategory,
@@ -151,15 +156,87 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
   const [form, setForm]           = useState<FormState | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Background removal state
+  const [bgState,       setBgState]       = useState<"idle" | "processing" | "preview">("idle");
+  const [bgPreviewUrl,  setBgPreviewUrl]  = useState<string | null>(null);
+  const [bgPreviewBlob, setBgPreviewBlob] = useState<Blob | null>(null);
+  const [bgError,       setBgError]       = useState<string | null>(null);
+  const bgAbortRef = useRef(0);
+
   const updateItem  = useUpdateClothingItem();
   const deleteItem  = useDeleteClothingItem();
   const queryClient = useQueryClient();
 
-  // Reset form whenever item changes
+  // Reset form + bg state whenever item changes
   useEffect(() => {
     if (item) setForm(toForm(item));
     setShowDeleteConfirm(false);
+    bgAbortRef.current += 1;
+    setBgState("idle");
+    setBgPreviewUrl(null);
+    setBgPreviewBlob(null);
+    setBgError(null);
   }, [item?.id]);
+
+  const handleRemoveBg = useCallback(async () => {
+    if (!item?.imageObjectPath) return;
+    const myGen = ++bgAbortRef.current;
+    setBgState("processing");
+    setBgError(null);
+    setBgPreviewUrl(null);
+    setBgPreviewBlob(null);
+    try {
+      const resultUrl  = await removeBackground(item.imageObjectPath);
+      if (bgAbortRef.current !== myGen) return;
+      const resultBlob   = await dataUrlToBlob(resultUrl);
+      if (bgAbortRef.current !== myGen) return;
+      const objUrl = URL.createObjectURL(resultBlob);
+      setBgPreviewBlob(resultBlob);
+      setBgPreviewUrl(objUrl);
+      setBgState("preview");
+    } catch (err) {
+      if (bgAbortRef.current !== myGen) return;
+      console.warn("Background removal failed:", err);
+      setBgError("Could not remove background. Please try again.");
+      setBgState("idle");
+    }
+  }, [item?.imageObjectPath]);
+
+  const handleApplyBg = useCallback(async () => {
+    if (!bgPreviewBlob || !item) return;
+    setBgState("processing");
+    try {
+      const newDataUrl = await blobToDataUrl(bgPreviewBlob);
+      await new Promise<void>((resolve, reject) => {
+        updateItem.mutate(
+          { id: item.id, data: { imageObjectPath: newDataUrl } },
+          {
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
+              queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() });
+              queryClient.invalidateQueries({ queryKey: getWardrobeStatsQueryKey() });
+              resolve();
+            },
+            onError: reject,
+          },
+        );
+      });
+      setBgState("idle");
+      setBgPreviewUrl(null);
+      setBgPreviewBlob(null);
+    } catch {
+      setBgError("Save failed. Please try again.");
+      setBgState("preview");
+    }
+  }, [bgPreviewBlob, item, updateItem, queryClient]);
+
+  const handleDismissBg = useCallback(() => {
+    bgAbortRef.current += 1;
+    setBgState("idle");
+    setBgPreviewUrl(null);
+    setBgPreviewBlob(null);
+    setBgError(null);
+  }, []);
 
   if (!item || !form) return null;
 
@@ -270,20 +347,101 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
         </div>
       </div>
 
-      {/* ── Photo ── */}
+      {/* ── Photo + Background Removal ── */}
       {item.imageObjectPath && (
-        <div
-          className="w-full h-52 flex-shrink-0 border-b-2 border-black"
-          style={{
-            backgroundImage: "repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%)",
-            backgroundSize: "16px 16px",
-          }}
-        >
-          <img
-            src={getImageUrl(item.imageObjectPath)!}
-            alt={item.name}
-            className="w-full h-full object-contain"
-          />
+        <div className="flex-shrink-0 border-b-2 border-black">
+
+          {bgState === "preview" ? (
+            /* Side-by-side comparison */
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 16 }}>
+              <p style={{ textAlign: "center", fontWeight: "bold", fontSize: 11,
+                          textTransform: "uppercase", letterSpacing: 2, opacity: 0.4, margin: 0 }}>
+                Tap to choose
+              </p>
+              <div style={{ display: "flex", gap: 10 }}>
+                {/* Original */}
+                <div style={{ flex: 1, border: "3px solid black", borderRadius: 14,
+                              overflow: "hidden", background: "black" }}>
+                  <img src={getImageUrl(item.imageObjectPath)!} alt="Original"
+                       style={{ width: "100%", objectFit: "contain", maxHeight: 160, display: "block" }} />
+                  <p style={{ textAlign: "center", fontWeight: "bold", fontSize: 10,
+                              textTransform: "uppercase", padding: "5px 0", margin: 0, color: "white",
+                              background: "black" }}>
+                    Original
+                  </p>
+                </div>
+                {/* Cleaned */}
+                <div style={{ flex: 1, border: "3px solid black", borderRadius: 14, overflow: "hidden",
+                              background: "repeating-conic-gradient(#d1d5db 0% 25%, white 0% 50%) 0 0 / 12px 12px" }}>
+                  <img src={bgPreviewUrl!} alt="Background removed"
+                       style={{ width: "100%", objectFit: "contain", maxHeight: 160, display: "block" }} />
+                  <p style={{ textAlign: "center", fontWeight: "bold", fontSize: 10,
+                              textTransform: "uppercase", padding: "5px 0", margin: 0,
+                              background: "rgba(255,255,255,0.85)" }}>
+                    Cleaned ✨
+                  </p>
+                </div>
+              </div>
+              {bgError && (
+                <p className="text-xs text-red-600 text-center">{bgError}</p>
+              )}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={handleDismissBg}
+                        className="flex-1 border-2 border-black rounded-xl py-2 text-xs font-bold uppercase
+                                   bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                   active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
+                  ✗ Dismiss
+                </button>
+                <button onClick={handleApplyBg}
+                        disabled={updateItem.isPending}
+                        className="flex-1 border-2 border-black rounded-xl py-2 text-xs font-bold uppercase
+                                   bg-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                   active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all
+                                   disabled:opacity-50">
+                  {updateItem.isPending ? "Saving…" : "✓ Apply"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Normal photo view */
+            <div>
+              <div className="w-full h-52"
+                   style={{ backgroundImage: "repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%)",
+                            backgroundSize: "16px 16px" }}>
+                <img src={getImageUrl(item.imageObjectPath)!} alt={item.name}
+                     className="w-full h-full object-contain" />
+              </div>
+              {/* Remove Background button */}
+              <div className="px-4 py-3 flex flex-col gap-1">
+                <button
+                  onClick={handleRemoveBg}
+                  disabled={bgState === "processing"}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl
+                             border-2 border-black text-xs font-bold uppercase tracking-wide
+                             bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                             active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all
+                             disabled:opacity-60 disabled:cursor-not-allowed
+                             disabled:active:translate-x-0 disabled:active:translate-y-0 disabled:active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  {bgState === "processing" ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Removing background…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Remove Background
+                    </>
+                  )}
+                </button>
+                {bgError && (
+                  <p className="text-xs text-red-600 text-center">{bgError}</p>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
       )}
 
