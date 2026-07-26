@@ -26,8 +26,8 @@ async function configureOrt(): Promise<void> {
   if (ortConfigured) return;
   ortConfigured = true;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ort = (await import("onnxruntime-web")) as any;
+  // @ts-ignore — onnxruntime-web types.d.ts exists but isn't reachable via its exports map
+  const ort = await import("onnxruntime-web");
 
   Object.defineProperty(ort.env.wasm, "proxy", {
     get: () => true,
