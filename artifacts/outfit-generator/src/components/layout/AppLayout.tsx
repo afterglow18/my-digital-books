@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Shirt, Sparkles, Bookmark, Settings } from "lucide-react";
+import { BookOpen, Sparkles, Heart, Settings } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { cn } from "@/lib/utils";
 import { useGetWardrobeStats } from "@/hooks/useLocalDB";
@@ -46,11 +46,11 @@ function NavButton({
               ? cn("p-2.5 rounded-xl w-12 h-12",
                   isActive
                     ? "bg-primary border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
-                    : "border-transparent group-hover:bg-muted group-active:scale-95")
+                    : "bg-[#fdf6ec] border-black/25 group-hover:border-black/50 group-active:scale-95")
               : cn("p-2.5 rounded-full",
                   isActive
                     ? "bg-primary border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -translate-y-1"
-                    : "border-transparent group-hover:bg-muted group-active:scale-95"),
+                    : "bg-[#fdf6ec] border-black/30 group-hover:border-black/60 group-active:scale-95"),
           )}
         >
           <Icon
@@ -117,9 +117,9 @@ export function AppLayout({ children }: AppLayoutProps) {
     : undefined;
 
   const navItems: NavItemDef[] = [
-    { href: "/",         label: "Books",    icon: Shirt,    badge: wardrobeCount },
-    { href: "/generate", label: "Generate", icon: Sparkles  },
-    { href: "/saved",    label: "Saved",    icon: Bookmark  },
+    { href: "/",         label: "Books",    icon: BookOpen, badge: wardrobeCount },
+    { href: "/generate", label: "Find",     icon: Sparkles  },
+    { href: "/saved",    label: "Saved",    icon: Heart     },
     { href: "/account",  label: "Settings", icon: Settings  },
   ];
 
