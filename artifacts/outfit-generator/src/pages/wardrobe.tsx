@@ -55,23 +55,23 @@ const IMG_W = 1024;
 const IMG_H = 1536;
 const NAV_H = 90;
 
-// ── Landmark fractions (calibrated for library-bg.png 1042×1509) ──────────────
-// Ornate library bookshelf, 4 wooden shelves, portrait orientation.
-// Title area:  y ≈ 0.00 → 0.17
-// Shelf 1:     y ≈ 0.17 → 0.35   (BOOKS / Fiction)
-// Shelf 2:     y ≈ 0.35 → 0.53   (AUTHORS / Non-Fiction)
-// Shelf 3:     y ≈ 0.53 → 0.71   (SERIES / Self-Help)
-// Shelf 4:     y ≈ 0.71 → 0.86   (BOOKMARKS / Wishlisted)
+// ── Landmark fractions (calibrated for shelf-bg.png 1043×1508) ────────────────
+// Empty ornate bookshelf, 4 wooden shelves, portrait orientation.
+// Decorative top (flowers, clock, globe): y ≈ 0.00 → 0.22
+// Shelf 1:     y ≈ 0.22 → 0.42
+// Shelf 2:     y ≈ 0.42 → 0.57
+// Shelf 3:     y ≈ 0.57 → 0.72
+// Shelf 4:     y ≈ 0.72 → 0.86
 // Save area:   y ≈ 0.87 →  end
 const LM = {
-  doorL: 0.045,  // inner left wall
-  doorR: 0.950,  // inner right wall
+  doorL: 0.080,  // inner left wall
+  doorR: 0.920,  // inner right wall
 
   rows: [
-    { sectionTop: 0.170, shelfY: 0.345, btnCY: 0.215 },  // Fiction    (shelf 1)
-    { sectionTop: 0.355, shelfY: 0.525, btnCY: 0.400 },  // Non-Fiction (shelf 2)
-    { sectionTop: 0.535, shelfY: 0.705, btnCY: 0.580 },  // Self-Help  (shelf 3)
-    { sectionTop: 0.715, shelfY: 0.855, btnCY: 0.760 },  // Wishlisted (shelf 4)
+    { sectionTop: 0.220, shelfY: 0.415, btnCY: 0.300 },  // Fiction     (shelf 1)
+    { sectionTop: 0.420, shelfY: 0.565, btnCY: 0.480 },  // Non-Fiction (shelf 2)
+    { sectionTop: 0.570, shelfY: 0.715, btnCY: 0.630 },  // Self-Help   (shelf 3)
+    { sectionTop: 0.720, shelfY: 0.855, btnCY: 0.775 },  // Wishlisted  (shelf 4)
   ],
 
   saveAreaY: 0.875,
@@ -219,7 +219,7 @@ export default function WardrobePage() {
     >
       {/* ── Background image — object-fit:cover avoids WebKit negative-left clipping bug ── */}
       <img
-        src="/library-bg.png"
+        src="/shelf-bg.png"
         alt="My Digital Books"
         style={{
           position: "absolute",
