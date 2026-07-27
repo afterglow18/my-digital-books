@@ -55,23 +55,26 @@ const IMG_W = 1024;
 const IMG_H = 1536;
 const NAV_H = 90;
 
-// ── Landmark fractions (calibrated for suitcase-open-bg.jpg 989×1536) ─────────
-// Real-photo suitcase, shot from above.
-// Lid interior:  y ≈ 0.05 → 0.38   (rows 1 & 2)
-// Main body:     y ≈ 0.42 → 0.80   (rows 3 & 4)
-// doorL/doorR:   left/right inner walls of the suitcase interior
+// ── Landmark fractions (calibrated for library-bg.png 1042×1509) ──────────────
+// Ornate library bookshelf, 4 wooden shelves, portrait orientation.
+// Title area:  y ≈ 0.00 → 0.17
+// Shelf 1:     y ≈ 0.17 → 0.35   (BOOKS / Fiction)
+// Shelf 2:     y ≈ 0.35 → 0.53   (AUTHORS / Non-Fiction)
+// Shelf 3:     y ≈ 0.53 → 0.71   (SERIES / Self-Help)
+// Shelf 4:     y ≈ 0.71 → 0.86   (BOOKMARKS / Wishlisted)
+// Save area:   y ≈ 0.87 →  end
 const LM = {
-  doorL: 0.182,  // inner left wall
-  doorR: 0.776,  // inner right wall
+  doorL: 0.045,  // inner left wall
+  doorR: 0.950,  // inner right wall
 
   rows: [
-    { sectionTop: 0.170, shelfY: 0.265, btnCY: 0.150 },  // OUTFITS  (lid, upper)
-    { sectionTop: 0.305, shelfY: 0.400, btnCY: 0.285 },  // BEAUTY   (lid, lower)
-    { sectionTop: 0.505, shelfY: 0.618, btnCY: 0.485 },  // TOILETRIES (body, upper)
-    { sectionTop: 0.660, shelfY: 0.770, btnCY: 0.640 },  // ESSENTIALS (body, lower)
+    { sectionTop: 0.170, shelfY: 0.345, btnCY: 0.215 },  // Fiction    (shelf 1)
+    { sectionTop: 0.355, shelfY: 0.525, btnCY: 0.400 },  // Non-Fiction (shelf 2)
+    { sectionTop: 0.535, shelfY: 0.705, btnCY: 0.580 },  // Self-Help  (shelf 3)
+    { sectionTop: 0.715, shelfY: 0.855, btnCY: 0.760 },  // Wishlisted (shelf 4)
   ],
 
-  saveAreaY: 0.84,
+  saveAreaY: 0.875,
 } as const;
 
 // ── useImageRect ─────────────────────────────────────────────────────────────
@@ -211,12 +214,12 @@ export default function WardrobePage() {
         width: "100%",
         height: `calc(100dvh - ${navHeight}px)`,
         overflow: "hidden",
-        background: "#C8B9A2",
+        background: "#2A1A0A",
       }}
     >
       {/* ── Background image — object-fit:cover avoids WebKit negative-left clipping bug ── */}
       <img
-        src="/suitcase-open-bg.jpg"
+        src="/library-bg.png"
         alt="My Digital Books"
         style={{
           position: "absolute",
