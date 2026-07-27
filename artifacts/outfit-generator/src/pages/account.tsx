@@ -4,7 +4,7 @@
  * Layout (top to bottom):
  *   1. MY PLAN      — current plan badge, upgrade CTA, restore link
  *   2. BACKUP & RESTORE — export/import with warning text
- *   3. MY DIGITAL SUITCASE — app version + tagline
+ *   3. MY DIGITAL BOOKS — app version + tagline
  */
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
