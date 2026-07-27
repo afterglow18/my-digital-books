@@ -61,55 +61,54 @@ export default function WelcomePage({ onEnter }: Props) {
         }}
       />
 
-      {/* ── Open Books button ── */}
-      <motion.button
-        onClick={handleOpen}
+      {/* ── Button + footer — pinned to bottom, always centered ── */}
+      <motion.div
         animate={exiting ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
         style={{
           position: "absolute",
-          bottom: "calc(env(safe-area-inset-bottom) + 52px)",
-          left: "50%",
-          transform: "translateX(-50%)",
-          fontFamily: "var(--font-display, sans-serif)",
-          fontWeight: 800,
-          fontSize: 15,
-          letterSpacing: "0.05em",
-          textTransform: "uppercase",
-          color: "#3A2210",
-          background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
-          border: "2px solid #8A5A28",
-          borderRadius: 100,
-          padding: "14px 48px",
-          cursor: "pointer",
-          whiteSpace: "nowrap",
-          boxShadow: "0 4px 24px rgba(120,80,40,0.50), 0 2px 0 rgba(0,0,0,0.6)",
+          bottom: 0, left: 0, right: 0,
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: 8,
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 14px)",
+          paddingTop: 20,
           pointerEvents: exiting ? "none" : "auto",
         }}
       >
-        Open Books ✨
-      </motion.button>
+        <button
+          onClick={handleOpen}
+          style={{
+            fontFamily: "var(--font-display, sans-serif)",
+            fontWeight: 800,
+            fontSize: 15,
+            letterSpacing: "0.05em",
+            textTransform: "uppercase",
+            color: "#3A2210",
+            background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
+            border: "2px solid #8A5A28",
+            borderRadius: 100,
+            padding: "14px 44px",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            boxShadow: "0 4px 24px rgba(120,80,40,0.50), 0 2px 0 rgba(0,0,0,0.6)",
+          }}
+        >
+          Open Books ✨
+        </button>
 
-      {/* ── Footer links ── */}
-      <div style={{
-        position: "absolute",
-        bottom: "calc(env(safe-area-inset-bottom) + 10px)",
-        left: 0, right: 0,
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-        zIndex: 210,
-        pointerEvents: exiting ? "none" : "auto",
-      }}>
-        <a
-          href="https://classy-alpaca-441.notion.site/Privacy-Policy-39682db6065380b19dedcb108d4a0ef4"
-          target="_blank" rel="noopener noreferrer"
-          style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}
-        >Privacy Policy</a>
-        <a
-          href="https://app.notion.com/p/My-Digital-Closet-Support-39782db60653802a9088dcbae84c0527?source=copy_link"
-          target="_blank" rel="noopener noreferrer"
-          style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}
-        >Support</a>
-      </div>
+        <div style={{ display: "flex", gap: 16 }}>
+          <a
+            href="https://classy-alpaca-441.notion.site/Privacy-Policy-39682db6065380b19dedcb108d4a0ef4"
+            target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", textDecoration: "none", letterSpacing: "0.02em" }}
+          >Privacy Policy</a>
+          <a
+            href="https://app.notion.com/p/My-Digital-Closet-Support-39782db60653802a9088dcbae84c0527?source=copy_link"
+            target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", textDecoration: "none", letterSpacing: "0.02em" }}
+          >Support</a>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
