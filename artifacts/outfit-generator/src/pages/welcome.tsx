@@ -175,40 +175,40 @@ export default function WelcomePage({ onEnter }: Props) {
                 borderRadius: 3,
               }} />
 
-              {/* Book emoji icon */}
+              {/* "Welcome" in cursive — centrepiece of the cover */}
               <div style={{
                 position: "absolute",
-                top: SH * 0.16, left: SW * 0.14, right: SW * 0.05,
-                display: "flex", justifyContent: "center",
-                fontSize: SW * 0.20, lineHeight: 1,
-              }}>📚</div>
-
-              {/* Title */}
-              <div style={{
-                position: "absolute",
-                top: SH * 0.37, left: SW * 0.14, right: SW * 0.05,
-                textAlign: "center",
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontWeight: 700,
-                fontSize: SW * 0.115,
-                lineHeight: 1.3,
-                color: "#D4AF37",
-                textShadow: "0 1px 4px rgba(0,0,0,0.65)",
-                letterSpacing: "0.03em",
+                top: 0, bottom: 0, left: SW * 0.14, right: SW * 0.05,
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                gap: SH * 0.04,
               }}>
-                My Digital<br />Books
-              </div>
+                {/* Top flourish */}
+                <div style={{
+                  fontSize: SW * 0.065,
+                  color: "rgba(212,175,55,0.50)",
+                  letterSpacing: "0.10em",
+                }}>✦ ─── ✦</div>
 
-              {/* Flourish */}
-              <div style={{
-                position: "absolute",
-                top: SH * 0.625, left: SW * 0.14, right: SW * 0.05,
-                textAlign: "center",
-                fontSize: SW * 0.068,
-                color: "rgba(212,175,55,0.48)",
-                letterSpacing: "0.08em",
-              }}>
-                ✦ ─── ✦
+                {/* Welcome */}
+                <div style={{
+                  fontFamily: "'Dancing Script', 'Brush Script MT', 'Segoe Script', cursive",
+                  fontWeight: 700,
+                  fontSize: SW * 0.22,
+                  lineHeight: 1.1,
+                  color: "#D4AF37",
+                  textShadow: "0 2px 8px rgba(0,0,0,0.70)",
+                  textAlign: "center",
+                }}>
+                  Welcome
+                </div>
+
+                {/* Bottom flourish */}
+                <div style={{
+                  fontSize: SW * 0.065,
+                  color: "rgba(212,175,55,0.50)",
+                  letterSpacing: "0.10em",
+                }}>✦ ─── ✦</div>
               </div>
 
               {/* Sheen */}
