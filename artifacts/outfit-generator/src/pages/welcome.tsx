@@ -1,18 +1,33 @@
 /**
- * WelcomePage — Full-screen library hero splash.
+ * WelcomePage — Closed-book splash with opening animation.
  *
- * IDLE    : library image fills the screen, button pulses at bottom.
- * EXITING : whole screen fades out → onEnter().
+ * Phases:
+ *  idle      → leather book, title + "Open Books" button
+ *  opening   → cover flips back (0.75 s), interior hero fades in
+ *  revealing → full-screen hero scales up from book (0.55 s)
+ *  exiting   → screen fades out (0.55 s) → onEnter()
  */
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
 interface Props { onEnter: () => void; }
 
 export default function WelcomePage({ onEnter }: Props) {
-  const [exiting, setExiting] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "opening" | "revealing" | "exiting">("idle");
+  const [vw, setVw] = useState(375);
+  const [vh, setVh] = useState(700);
   const calledRef = useRef(false);
+  const timers    = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    const update = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
 
   const finish = useCallback(() => {
     if (calledRef.current) return;
@@ -21,97 +36,270 @@ export default function WelcomePage({ onEnter }: Props) {
   }, [onEnter]);
 
   const handleOpen = () => {
-    if (exiting) return;
-    setExiting(true);
-    setTimeout(finish, 600);
+    if (phase !== "idle") return;
+    setPhase("opening");
+    const t1 = setTimeout(() => setPhase("revealing"), 750);
+    const t2 = setTimeout(() => setPhase("exiting"),   1350);
+    const t3 = setTimeout(finish,                       1900);
+    timers.current = [t1, t2, t3];
   };
+
+  // ── Book dimensions ──────────────────────────────────────────────────────
+  const SW  = Math.min(vw * 0.62, 250);   // book width
+  const SH  = SW  * 1.38;                 // book height
+
+  const isOpen   = phase !== "idle";
+  const isReveal = phase === "revealing" || phase === "exiting";
 
   return (
     <motion.div
-      animate={{ opacity: exiting ? 0 : 1 }}
-      transition={{ duration: 0.6, ease: "easeIn" }}
+      animate={{ opacity: phase === "exiting" ? 0 : 1 }}
+      transition={{ duration: 0.55, ease: "easeIn" }}
       style={{
         position: "fixed", inset: 0, zIndex: 200,
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
         overflow: "hidden",
-        background: "#1A0E04",
+        background: "#0E0804",
       }}
     >
-      {/* ── Hero image — fills the screen ── */}
-      <img
+      {/* ── Full-screen hero — expands during revealing ───────────────────── */}
+      <motion.img
         src="/welcome-hero.png"
-        alt="My Digital Books"
+        alt=""
         draggable={false}
+        animate={isReveal ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.26 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         style={{
           position: "absolute",
-          top: "env(safe-area-inset-top)",
-          left: 0, right: 0, bottom: 0,
+          top: "env(safe-area-inset-top)", left: 0, right: 0, bottom: 0,
           width: "100%",
           height: "calc(100% - env(safe-area-inset-top))",
           objectFit: "fill",
+          zIndex: 8,
+          pointerEvents: "none",
           userSelect: "none",
-          pointerEvents: "none",
         }}
       />
 
-      {/* ── Bottom gradient so the button reads clearly ── */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0, left: 0, right: 0,
-          height: "28%",
-          background: "linear-gradient(to top, rgba(14,7,2,0.82) 0%, transparent 100%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* ── Button + footer — pinned to bottom, always centered ── */}
+      {/* ── Book + title + button (fades out when hero takes over) ─────────── */}
       <motion.div
-        animate={exiting ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
+        animate={{ opacity: isReveal ? 0 : 1, y: isReveal ? -12 : 0 }}
+        transition={{ duration: 0.25 }}
         style={{
-          position: "absolute",
-          bottom: 0, left: 0, right: 0,
+          position: "relative", zIndex: 4,
           display: "flex", flexDirection: "column", alignItems: "center",
-          gap: 8,
-          paddingBottom: "calc(env(safe-area-inset-bottom) + 14px)",
-          paddingTop: 20,
-          pointerEvents: exiting ? "none" : "auto",
         }}
       >
-        <button
+
+        {/* ══ THE BOOK ══════════════════════════════════════════════════════ */}
+        <div style={{ width: SW, height: SH, position: "relative", perspective: SW * 3.2 }}>
+
+          {/* Back cover + page edges (always visible behind the front cover) */}
+          <div style={{
+            position: "absolute", inset: 0,
+            borderRadius: "4px 10px 10px 4px",
+            background: "#2E1508",
+            boxShadow: `6px 8px 32px rgba(0,0,0,0.75), inset -2px 0 0 rgba(0,0,0,0.3)`,
+          }}>
+            {/* Stacked page edges on right */}
+            <div style={{
+              position: "absolute", right: 0, top: SW * 0.025, bottom: SW * 0.025,
+              width: SW * 0.04, borderRadius: "0 6px 6px 0",
+              background: "repeating-linear-gradient(to bottom, #F0E4C8, #D4C4A0 1.5px, #F0E4C8 1.5px, #F0E4C8 4px)",
+            }} />
+
+            {/* Hero image inside the book — revealed as cover flips */}
+            <motion.img
+              src="/welcome-hero.png"
+              alt=""
+              draggable={false}
+              animate={{ opacity: isOpen && !isReveal ? 1 : 0 }}
+              transition={{ duration: 0.35, delay: isOpen ? 0.30 : 0 }}
+              style={{
+                position: "absolute",
+                left: SW * 0.045, right: SW * 0.06,
+                top: SH * 0.015, bottom: SH * 0.015,
+                objectFit: "cover",
+                borderRadius: 3,
+                pointerEvents: "none",
+              }}
+            />
+          </div>
+
+          {/* Front cover — 3-D flip on Y axis around spine (left edge) */}
+          <motion.div
+            animate={isOpen ? { rotateY: -168 } : { rotateY: 0 }}
+            transition={{ duration: 0.80, ease: [0.30, 0, 0.15, 1] }}
+            style={{
+              position: "absolute", inset: 0,
+              transformOrigin: "left center",
+              transformStyle: "preserve-3d",
+            }}
+          >
+            {/* Front face of cover */}
+            <div style={{
+              position: "absolute", inset: 0,
+              backfaceVisibility: "hidden",
+              borderRadius: "4px 10px 10px 4px",
+              background: "linear-gradient(150deg, #8B4A1E 0%, #5C2E0A 38%, #7A3E14 68%, #4A2008 100%)",
+              boxShadow: `inset 0 0 ${SW * 0.07}px rgba(0,0,0,0.45)`,
+              overflow: "hidden",
+            }}>
+              {/* Spine left strip */}
+              <div style={{
+                position: "absolute", left: 0, top: 0, bottom: 0,
+                width: SW * 0.10,
+                background: "linear-gradient(to right, #2E1206, #5C2E0A)",
+              }} />
+              {/* Spine shadow divider */}
+              <div style={{
+                position: "absolute", left: SW * 0.10, top: 0, bottom: 0,
+                width: 2, background: "rgba(0,0,0,0.40)",
+              }} />
+
+              {/* Gold outer border */}
+              <div style={{
+                position: "absolute",
+                top: SH * 0.048, left: SW * 0.145,
+                right: SW * 0.048, bottom: SH * 0.048,
+                border: "1.5px solid rgba(212,175,55,0.60)",
+                borderRadius: 5,
+              }} />
+              {/* Gold inner border */}
+              <div style={{
+                position: "absolute",
+                top: SH * 0.066, left: SW * 0.162,
+                right: SW * 0.066, bottom: SH * 0.066,
+                border: "0.5px solid rgba(212,175,55,0.28)",
+                borderRadius: 3,
+              }} />
+
+              {/* Book emoji icon */}
+              <div style={{
+                position: "absolute",
+                top: SH * 0.16, left: SW * 0.14, right: SW * 0.05,
+                display: "flex", justifyContent: "center",
+                fontSize: SW * 0.20, lineHeight: 1,
+              }}>📚</div>
+
+              {/* Title */}
+              <div style={{
+                position: "absolute",
+                top: SH * 0.37, left: SW * 0.14, right: SW * 0.05,
+                textAlign: "center",
+                fontFamily: "Georgia, 'Times New Roman', serif",
+                fontWeight: 700,
+                fontSize: SW * 0.115,
+                lineHeight: 1.3,
+                color: "#D4AF37",
+                textShadow: "0 1px 4px rgba(0,0,0,0.65)",
+                letterSpacing: "0.03em",
+              }}>
+                My Digital<br />Books
+              </div>
+
+              {/* Flourish */}
+              <div style={{
+                position: "absolute",
+                top: SH * 0.625, left: SW * 0.14, right: SW * 0.05,
+                textAlign: "center",
+                fontSize: SW * 0.068,
+                color: "rgba(212,175,55,0.48)",
+                letterSpacing: "0.08em",
+              }}>
+                ✦ ─── ✦
+              </div>
+
+              {/* Sheen */}
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 55%)",
+                borderRadius: "4px 10px 10px 4px",
+              }} />
+            </div>
+
+            {/* Back face of cover (inside, visible mid-rotation) */}
+            <div style={{
+              position: "absolute", inset: 0,
+              transform: "rotateY(180deg)",
+              backfaceVisibility: "hidden",
+              background: "#2A1206",
+              borderRadius: "4px 10px 10px 4px",
+            }} />
+          </motion.div>
+        </div>
+        {/* ══ END BOOK ══════════════════════════════════════════════════════ */}
+
+        {/* Title */}
+        <div style={{ marginTop: vh * 0.038, textAlign: "center" }}>
+          <div style={{
+            fontFamily: "var(--font-display, serif)",
+            fontWeight: 900,
+            fontSize: `clamp(24px, ${SW * 0.145}px, 44px)`,
+            letterSpacing: "-0.02em",
+            lineHeight: 1.1,
+            color: "#E8D4B0",
+          }}>
+            MY DIGITAL<br />BOOKS
+          </div>
+          <div style={{
+            marginTop: 8,
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: "0.25em",
+            textTransform: "uppercase" as const,
+            color: "rgba(232,212,176,0.40)",
+          }}>
+            your book collection
+          </div>
+        </div>
+
+        {/* Open Books button */}
+        <motion.button
           onClick={handleOpen}
+          animate={{ opacity: phase === "idle" ? 1 : 0, y: phase === "idle" ? 0 : 8 }}
+          transition={{ duration: 0.2 }}
           style={{
+            marginTop: vh * 0.038,
             fontFamily: "var(--font-display, sans-serif)",
-            fontWeight: 800,
-            fontSize: 15,
-            letterSpacing: "0.05em",
-            textTransform: "uppercase",
+            fontWeight: 800, fontSize: 15,
+            letterSpacing: "0.03em",
             color: "#3A2210",
             background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
-            border: "2px solid #8A5A28",
+            border: "1.5px solid #B8894E",
             borderRadius: 100,
-            padding: "14px 44px",
+            padding: "13px 40px",
             cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(120,80,40,0.45), 2px 2px 0 rgba(0,0,0,0.7)",
             whiteSpace: "nowrap",
-            boxShadow: "0 4px 24px rgba(120,80,40,0.50), 0 2px 0 rgba(0,0,0,0.6)",
+            pointerEvents: phase === "idle" ? "auto" : "none",
           }}
         >
           Open Books ✨
-        </button>
-
-        <div style={{ display: "flex", gap: 16 }}>
-          <a
-            href="https://classy-alpaca-441.notion.site/Privacy-Policy-39682db6065380b19dedcb108d4a0ef4"
-            target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", textDecoration: "none", letterSpacing: "0.02em" }}
-          >Privacy Policy</a>
-          <a
-            href="https://app.notion.com/p/My-Digital-Closet-Support-39782db60653802a9088dcbae84c0527?source=copy_link"
-            target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", textDecoration: "none", letterSpacing: "0.02em" }}
-          >Support</a>
-        </div>
+        </motion.button>
       </motion.div>
+
+      {/* Footer links */}
+      <div style={{
+        position: "fixed",
+        bottom: "calc(env(safe-area-inset-bottom) + 10px)",
+        left: 0, right: 0,
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+        zIndex: 210,
+        pointerEvents: isReveal ? "none" : "auto",
+      }}>
+        <a
+          href="https://classy-alpaca-441.notion.site/Privacy-Policy-39682db6065380b19dedcb108d4a0ef4"
+          target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.25)", textDecoration: "none", letterSpacing: "0.02em" }}
+        >Privacy Policy</a>
+        <a
+          href="https://app.notion.com/p/My-Digital-Closet-Support-39782db60653802a9088dcbae84c0527?source=copy_link"
+          target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.25)", textDecoration: "none", letterSpacing: "0.02em" }}
+        >Support</a>
+      </div>
     </motion.div>
   );
 }
