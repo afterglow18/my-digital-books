@@ -237,7 +237,8 @@ export default function WelcomePage({ onEnter }: Props) {
             fontFamily: "var(--font-display, serif)",
             fontWeight: 900,
             fontSize: `clamp(24px, ${SW * 0.145}px, 44px)`,
-            letterSpacing: "-0.02em",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase" as const,
             lineHeight: 1.1,
             color: "#E8D4B0",
           }}>

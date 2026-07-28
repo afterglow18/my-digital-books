@@ -312,7 +312,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
     >
       {/* ── Header ── */}
       <div className="sticky top-0 z-10 flex items-center justify-between px-4
-                      bg-white border-b-2 border-black flex-shrink-0"
+                      bg-[#f9f4ee] border-b-2 border-black flex-shrink-0"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))", paddingBottom: "0.75rem" }}>
         <h2 className="font-display font-bold text-xl uppercase tracking-tight">
           Item Details
@@ -474,7 +474,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
       </div>
 
       {/* ── Footer actions ── */}
-      <div className="sticky bottom-0 px-4 py-4 bg-white border-t-2 border-black flex-shrink-0 flex flex-col gap-2">
+      <div className="sticky bottom-0 px-4 py-4 bg-[#f9f4ee] border-t-2 border-black flex-shrink-0 flex flex-col gap-2">
 
         {/* Save (only when dirty) */}
         <AnimatePresence>
