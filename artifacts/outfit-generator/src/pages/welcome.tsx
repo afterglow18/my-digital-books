@@ -42,8 +42,11 @@ export default function WelcomePage({ onEnter }: Props) {
         alt="My Digital Books"
         draggable={false}
         style={{
-          position: "absolute", inset: 0,
-          width: "100%", height: "100%",
+          position: "absolute",
+          top: "env(safe-area-inset-top)",
+          left: 0, right: 0, bottom: 0,
+          width: "100%",
+          height: "calc(100% - env(safe-area-inset-top))",
           objectFit: "fill",
           userSelect: "none",
           pointerEvents: "none",
