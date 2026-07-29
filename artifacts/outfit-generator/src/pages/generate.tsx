@@ -308,7 +308,7 @@ export default function GeneratePage() {
               const lm    = LM.rows[rowIdx];
               const items = { outfits, beauty, toiletries, essentials }[key];
               // For the bookmarks row push the carousel down so it sits just above the heading
-              const rawSecTop = rowIdx === 3 ? 0.758 : lm.sectionTop;
+              const rawSecTop = rowIdx === 3 ? 0.745 : lm.sectionTop;
               const secTop = pY(ir, rawSecTop);
               const secH   = pH(ir, lm.shelfY - lm.sectionTop);
               const btnCY  = pY(ir, lm.btnCY);
