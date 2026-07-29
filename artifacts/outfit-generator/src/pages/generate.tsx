@@ -307,7 +307,9 @@ export default function GeneratePage() {
             {ROWS.map(({ key }, rowIdx) => {
               const lm    = LM.rows[rowIdx];
               const items = { outfits, beauty, toiletries, essentials }[key];
-              const secTop = pY(ir, lm.sectionTop);
+              // For the bookmarks row push the carousel down so it sits just above the heading
+              const rawSecTop = rowIdx === 3 ? 0.771 : lm.sectionTop;
+              const secTop = pY(ir, rawSecTop);
               const secH   = pH(ir, lm.shelfY - lm.sectionTop);
               const btnCY  = pY(ir, lm.btnCY);
               const btnH   = Math.max(32, pH(ir, 0.045));
