@@ -241,7 +241,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
                            transition-all"
               >
                 <span className="text-4xl leading-none">📷</span>
-                <span className="font-display font-bold text-base uppercase tracking-tight text-center leading-tight">
+                <span className="font-display font-bold text-base uppercase tracking-tight text-center leading-tight text-primary-foreground">
                   Take<br />Photo
                 </span>
               </button>
