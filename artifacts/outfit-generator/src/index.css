@@ -80,8 +80,8 @@
   --popover-foreground: 0 0% 9%;
   --popover-border: 0 0% 9%;
   
-  --primary: 35 55% 82%; /* Warm Tan */
-  --primary-foreground: 28 50% 18%; /* Dark Brown */
+  --primary: 220 64% 25%; /* Navy Blue */
+  --primary-foreground: 0 0% 100%; /* White */
   
   --secondary: 28 42% 55%; /* Medium Leather Brown */
   --secondary-foreground: 40 30% 97%; /* Cream */
@@ -125,8 +125,8 @@
   --popover-foreground: 45 33% 98%;
   --popover-border: 45 33% 98%;
   
-  --primary: 35 55% 82%;
-  --primary-foreground: 28 50% 18%;
+  --primary: 220 64% 25%;
+  --primary-foreground: 0 0% 100%;
   
   --secondary: 28 42% 55%;
   --secondary-foreground: 40 30% 97%;
