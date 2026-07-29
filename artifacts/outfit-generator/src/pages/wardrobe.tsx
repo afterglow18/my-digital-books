@@ -298,7 +298,7 @@ export default function WardrobePage() {
             const items   = rowData[key];
 
             // For the bookmarks row push the carousel down so it sits just above the heading
-            const rawSecTop = rowIdx === 3 ? 0.762 : rowIdx === 2 ? 0.600 : lm.sectionTop;
+            const rawSecTop = rowIdx === 3 ? 0.762 : rowIdx === 2 ? 0.588 : lm.sectionTop;
             const secTop  = pY(ir, rawSecTop);
             const secH    = pH(ir, lm.shelfY - lm.sectionTop);
             const carLeft = pX(ir, LM.doorL);
