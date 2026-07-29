@@ -34,7 +34,7 @@ export function LockedScreen({ onTryAgain, isPending }: Props) {
       <div className="text-center px-8">
         <h1
           className="font-display font-black text-3xl uppercase tracking-tight leading-none mb-2"
-          style={{ color: "#0D1B3E" }}
+          style={{ color: "#0D1B38" }}
         >
           My Books
         </h1>

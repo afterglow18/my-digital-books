@@ -80,11 +80,11 @@
   --popover-foreground: 0 0% 9%;
   --popover-border: 0 0% 9%;
   
-  --primary: 220 63% 28%; /* Plaid Navy #1B3478 */
-  --primary-foreground: 33 47% 50%; /* Plaid Tan #B8894E */
+  --primary: 220 65% 14%; /* Plaid Navy #0D1B38 */
+  --primary-foreground: 30 46% 62%; /* Plaid Tan #C4A07A */
   
-  --secondary: 33 47% 50%; /* Plaid Tan #B8894E */
-  --secondary-foreground: 0 0% 100%; /* White */
+  --secondary: 30 46% 62%; /* Plaid Tan #C4A07A */
+  --secondary-foreground: 220 65% 14%; /* Plaid Navy */
   
   --muted: 0 0% 90%;
   --muted-foreground: 0 0% 40%;
@@ -125,11 +125,11 @@
   --popover-foreground: 45 33% 98%;
   --popover-border: 45 33% 98%;
   
-  --primary: 220 63% 28%;
-  --primary-foreground: 33 47% 50%; /* Plaid Tan */
+  --primary: 220 65% 14%;
+  --primary-foreground: 30 46% 62%;
   
-  --secondary: 33 47% 50%;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 30 46% 62%;
+  --secondary-foreground: 220 65% 14%;
   
   --muted: 0 0% 20%;
   --muted-foreground: 0 0% 70%;

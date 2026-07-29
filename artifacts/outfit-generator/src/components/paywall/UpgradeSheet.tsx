@@ -19,7 +19,7 @@ interface Props {
 // ── Palette ───────────────────────────────────────────────────────────────────
 const NAVY    = "#060E1F";   // deep midnight navy
 const TAN     = "#D4B896";   // app primary tan (hsl 35 55% 82%)
-const TAN_DK  = "#B8894E";   // darker tan — borders & shadows
+const TAN_DK  = "#C4A07A";   // darker tan — borders & shadows
 const CREAM   = "#F5EAD4";   // warm parchment text
 
 // CSS plaid: fine tan lines on midnight navy
