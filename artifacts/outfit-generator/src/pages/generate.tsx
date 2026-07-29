@@ -320,7 +320,7 @@ export default function GeneratePage() {
               const btnH   = Math.max(32, pH(ir, 0.045));
 
               const label = (names[key as CategoryKey] ?? key).toUpperCase();
-              const labelFactor = rowIdx === 0 ? 0.89 : rowIdx === 1 ? 1.06 : rowIdx === 2 ? 1.22 : 1.38;
+              const labelFactor = rowIdx === 0 ? 0.93 : rowIdx === 1 ? 1.06 : rowIdx === 2 ? 1.22 : 1.38;
               const labelY = pY(ir, lm.sectionTop + (lm.shelfY - lm.sectionTop) * labelFactor);
 
               return (
