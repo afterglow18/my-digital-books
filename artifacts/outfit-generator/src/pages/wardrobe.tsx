@@ -216,7 +216,7 @@ export default function WardrobePage() {
         width: "100%",
         height: `calc(100dvh - ${navHeight}px)`,
         overflow: "hidden",
-        background: "#2A1A0A",
+        background: "#0D1B3E",
       }}
     >
       {/* ── Background image — object-fit:cover avoids WebKit negative-left clipping bug ── */}
@@ -280,8 +280,8 @@ export default function WardrobePage() {
                   : "rgba(255,255,255,0.55)",
                 boxShadow: totalItems >= FREE_ITEM_LIMIT
                   ? "0 0 0 2px rgba(200,40,40,0.40)"
-                  : "0 0 0 1.5px rgba(180,100,110,0.28)",
-                color: totalItems >= FREE_ITEM_LIMIT ? "#aa0000" : "#7a3a40",
+                  : "0 0 0 1.5px rgba(100,130,200,0.28)",
+                color: totalItems >= FREE_ITEM_LIMIT ? "#aa0000" : "#2A4A8E",
                 fontWeight: 700, fontSize: 10,
                 letterSpacing: "0.08em", textTransform: "uppercase",
                 whiteSpace: "nowrap", cursor: "pointer",
@@ -517,7 +517,7 @@ export default function WardrobePage() {
                         flex: 1, height: 40, borderRadius: 20,
                         border: "2px solid #B8894E",
                         background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
-                        color: "#3A2210", fontWeight: 800, fontSize: 13,
+                        color: "#1B3478", fontWeight: 800, fontSize: 13,
                         cursor: saveName.trim() ? "pointer" : "default",
                         opacity: saveName.trim() ? 1 : 0.45,
                         fontFamily: "var(--font-display)",

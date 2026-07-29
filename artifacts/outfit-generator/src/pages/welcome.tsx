@@ -267,7 +267,7 @@ export default function WelcomePage({ onEnter }: Props) {
             fontFamily: "var(--font-display, sans-serif)",
             fontWeight: 800, fontSize: 15,
             letterSpacing: "0.03em",
-            color: "#3A2210",
+            color: "#1B3478",
             background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
             border: "1.5px solid #B8894E",
             borderRadius: 100,

@@ -289,7 +289,7 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
               opacity = OPACITY_SIDE + (1           - OPACITY_SIDE) * p;
               bg      = `rgba(80,45,15,${(p * 0.48).toFixed(3)})`;
               shadow  = p > 0.05
-                ? `0 ${(4 * p).toFixed(1)}px ${(16 * p).toFixed(1)}px rgba(200,100,120,${(0.22 * p).toFixed(3)})`
+                ? `0 ${(4 * p).toFixed(1)}px ${(16 * p).toFixed(1)}px rgba(100,130,200,${(0.22 * p).toFixed(3)})`
                 : "none";
             }
 

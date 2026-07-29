@@ -251,7 +251,7 @@ export default function GeneratePage() {
         width: "100%",
         height: `calc(100dvh - ${navHeight}px)`,
         overflow: "hidden",
-        background: "#2A1A0A",
+        background: "#0D1B3E",
       }}
     >
       {/* ── Background image — object-fit:cover avoids WebKit negative-left clipping bug ── */}
@@ -382,7 +382,7 @@ export default function GeneratePage() {
                       <span style={{
                         fontSize: 10, fontWeight: 700,
                         letterSpacing: "0.09em", textTransform: "uppercase",
-                        color: "rgba(180,100,110,0.40)",
+                        color: "rgba(100,130,200,0.40)",
                       }}>
                         No items
                       </span>
@@ -419,7 +419,7 @@ export default function GeneratePage() {
                   <span style={{
                     fontSize: 10, fontWeight: 800,
                     letterSpacing: "0.13em", textTransform: "uppercase",
-                    color: "#3A2210",
+                    color: "#1B3478",
                     background: "rgba(240,225,196,0.90)",
                     padding: "3px 11px", borderRadius: 20,
                     whiteSpace: "nowrap",
@@ -448,12 +448,12 @@ export default function GeneratePage() {
                 <p style={{
                   fontWeight: 800, fontSize: 12,
                   letterSpacing: "0.07em", textTransform: "uppercase",
-                  color: "#3A2210", fontFamily: "var(--font-display)", margin: 0,
+                  color: "#1B3478", fontFamily: "var(--font-display)", margin: 0,
                 }}>
                   Your library is empty
                 </p>
                 <p style={{
-                  fontSize: 11, color: "#9a5060",
+                  fontSize: 11, color: "#1B3478",
                   marginTop: 5, lineHeight: 1.5,
                 }}>
                   Add fiction, non-fiction, self-help or wishlisted titles in the Books tab first.
@@ -510,7 +510,7 @@ export default function GeneratePage() {
                       background: hasItems
                         ? "linear-gradient(to bottom, #E8D4B0, #B8894E)"
                         : "rgba(200,175,140,0.32)",
-                      color: hasItems ? "#3A2210" : "#7A5A30",
+                      color: hasItems ? "#1B3478" : "#2A4A8E",
                       fontWeight: 800, fontSize: 16,
                       letterSpacing: "-0.01em", textTransform: "uppercase",
                       whiteSpace: "nowrap",
@@ -600,7 +600,7 @@ export default function GeneratePage() {
                         height: 68, borderRadius: 34,
                         border: "2.5px solid #B8894E",
                         background: canSave ? "#fff" : "rgba(240,240,240,0.80)",
-                        color: "#3A2210",
+                        color: "#1B3478",
                         fontFamily: "var(--font-display)",
                         fontWeight: 800, fontSize: 17,
                         letterSpacing: "-0.01em", textTransform: "uppercase",
@@ -637,7 +637,7 @@ export default function GeneratePage() {
                       onKeyDown={e => e.key === "Enter" && handleSave()}
                       style={{
                         flex: 1, height: 38, borderRadius: 20, padding: "0 14px",
-                        fontSize: 13, fontWeight: 600, color: "#3A2210",
+                        fontSize: 13, fontWeight: 600, color: "#1B3478",
                         background: "rgba(245,237,216,0.98)",
                         border: "1.5px solid rgba(180,140,90,0.50)",
                         boxShadow: "0 3px 12px rgba(0,0,0,0.13)",
@@ -662,7 +662,7 @@ export default function GeneratePage() {
                       style={{
                         padding: "0 14px", height: 36, borderRadius: 20, flexShrink: 0,
                         background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
-                        color: "#3A2210", fontWeight: 700, fontSize: 13, border: "1.5px solid #B8894E",
+                        color: "#1B3478", fontWeight: 700, fontSize: 13, border: "1.5px solid #B8894E",
                         boxShadow: "0 3px 10px rgba(120,80,40,0.30)",
                         opacity: (!saveName.trim() || saveOutfit.isPending) ? 0.42 : 1,
                         cursor: "pointer",
@@ -755,7 +755,7 @@ export default function GeneratePage() {
                     flex: 1, height: 40, borderRadius: 20,
                     border: "2px solid #B8894E",
                     background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
-                    color: "#3A2210", fontWeight: 800, fontSize: 13,
+                    color: "#1B3478", fontWeight: 800, fontSize: 13,
                     cursor: editDraft.trim() ? "pointer" : "default",
                     opacity: editDraft.trim() ? 1 : 0.45,
                     fontFamily: "var(--font-display)",
