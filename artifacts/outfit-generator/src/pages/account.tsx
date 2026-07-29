@@ -18,10 +18,10 @@ import { Capacitor } from "@capacitor/core";
 import { useBiometricLock } from "@/context/BiometricLockContext";
 
 // ── Palette ───────────────────────────────────────────────────────────────────
-const NAVY  = "#1B3A6B";
-const GOLD  = "#C9A227";
+const NAVY  = "#0D1B38";
+const GOLD  = "#C4A07A";
 const CREAM = "#F5EAD4";
-const TAN   = "#C4A882";
+const TAN   = "#C4A07A";
 
 // ─── Card shell ───────────────────────────────────────────────────────────────
 

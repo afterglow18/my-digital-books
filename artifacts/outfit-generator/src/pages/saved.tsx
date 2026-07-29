@@ -191,7 +191,7 @@ export default function SavedPage() {
           className="mb-5 border-2 border-black rounded-xl bg-primary p-4
                      shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
         >
-          <p className="font-display font-bold text-sm uppercase tracking-tight">
+          <p className="font-display font-bold text-sm uppercase tracking-tight text-primary-foreground">
             🔓 Reading list is full
           </p>
           <p className="text-xs text-primary/60 mt-1 mb-3 leading-snug">
@@ -266,7 +266,7 @@ export default function SavedPage() {
                       onClick={() => startRename(outfit.id, outfit.name)}
                       className="flex-1 flex items-center gap-1.5 text-left group min-w-0"
                     >
-                      <h3 className="font-display font-bold text-lg uppercase tracking-tight truncate">{outfit.name}</h3>
+                      <h3 className="font-display font-bold text-lg uppercase tracking-tight truncate text-primary-foreground">{outfit.name}</h3>
                       <Pencil className="w-3 h-3 shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
                     </button>
                   )}
