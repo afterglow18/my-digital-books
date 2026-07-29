@@ -276,7 +276,7 @@ export default function GeneratePage() {
             {/* ── Page title ── */}
             <div style={{
               position: "absolute",
-              top: pY(ir, 0.095),
+              top: pY(ir, 0.022),
               left: 8,
               right: 8,
               zIndex: 25,
@@ -296,18 +296,6 @@ export default function GeneratePage() {
                 textShadow: "0 1px 6px rgba(0,0,0,0.55), 0 0 20px rgba(0,0,0,0.25)",
               }}>
                 My Digital Books
-              </div>
-              <div style={{
-                fontFamily: "var(--font-display, serif)",
-                fontWeight: 900,
-                fontSize: Math.max(10, Math.min(pW(ir, 0.040), ir.containerH * 0.032)),
-                letterSpacing: "0.06em",
-                whiteSpace: "nowrap",
-                textTransform: "uppercase",
-                color: "#1a0800",
-                lineHeight: 1.1,
-              }}>
-                BOOK FINDER
               </div>
             </div>
 
