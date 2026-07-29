@@ -56,7 +56,7 @@ function NavButton({
           <Icon
             className={cn(
               "w-6 h-6",
-              isActive ? "text-black" : "text-muted-foreground",
+              isActive ? "text-primary" : "text-muted-foreground",
               item.href === "/generate" && isActive ? "animate-pulse" : "",
             )}
             strokeWidth={isActive ? 2.5 : 2}
@@ -64,7 +64,7 @@ function NavButton({
 
           {/* Badge */}
           {item.badge != null && item.badge > 0 && (
-            <div className="absolute -top-2 -right-2 bg-secondary text-black text-[10px] font-bold border-2 border-black w-5 h-5 flex items-center justify-center rounded-full shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+            <div className="absolute -top-2 -right-2 bg-secondary text-primary text-[10px] font-bold border-2 border-primary w-5 h-5 flex items-center justify-center rounded-full shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
               {item.badge > 99 ? "99+" : item.badge}
             </div>
           )}
@@ -74,7 +74,7 @@ function NavButton({
           className={cn(
             "font-bold uppercase tracking-wider transition-colors",
             sidebar ? "text-[9px]" : "text-[10px]",
-            isActive ? "text-black" : "text-muted-foreground",
+            isActive ? "text-primary" : "text-muted-foreground",
           )}
         >
           {item.label}

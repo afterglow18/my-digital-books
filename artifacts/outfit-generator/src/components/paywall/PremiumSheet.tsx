@@ -112,7 +112,7 @@ export function PremiumSheet({ onClose }: Props) {
             {PRO_FEATURES.map(({ emoji, text }) => (
               <li key={text} className="flex items-start gap-3 text-sm leading-snug">
                 <span className="text-base leading-none mt-0.5 flex-shrink-0">{emoji}</span>
-                <span className="text-black/80">{text}</span>
+                <span className="text-primary/80">{text}</span>
               </li>
             ))}
           </ul>
@@ -155,8 +155,8 @@ export function PremiumSheet({ onClose }: Props) {
 
         <button
           onClick={onClose}
-          className="text-sm font-bold text-black/40 text-center underline underline-offset-2
-                     hover:text-black/60 transition-colors"
+          className="text-sm font-bold text-primary/40 text-center underline underline-offset-2
+                     hover:text-primary/60 transition-colors"
         >
           Maybe Later
         </button>
@@ -165,7 +165,7 @@ export function PremiumSheet({ onClose }: Props) {
         <button
           onClick={() => restore()}
           disabled={isRestoring}
-          className="text-xs font-semibold text-black/30 text-center hover:text-black/50 transition-colors disabled:opacity-50"
+          className="text-xs font-semibold text-primary/30 text-center hover:text-primary/50 transition-colors disabled:opacity-50"
         >
           {isRestoring ? "Restoring…" : "Restore Purchases"}
         </button>

@@ -174,7 +174,7 @@ export default function SavedPage() {
                           ${atLimit
                             ? "bg-black text-white border-black"
                             : outfitCount >= FREE_OUTFIT_LIMIT - 1
-                            ? "bg-primary border-black text-black"
+                            ? "bg-primary border-primary text-primary-foreground"
                             : "bg-white border-black/20 text-black/40 hover:border-black/40"
                           }`}
             >
