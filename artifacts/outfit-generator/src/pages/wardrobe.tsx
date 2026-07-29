@@ -306,7 +306,7 @@ export default function WardrobePage() {
             const btnCY   = pY(ir, lm.btnCY);
             const btnH    = Math.max(32, pH(ir, 0.045));
 
-            const labelFactor = rowIdx === 0 ? 0.82 : rowIdx === 1 ? 1.04 : 1.22;
+            const labelFactor = rowIdx === 0 ? 0.82 : rowIdx === 1 ? 1.04 : rowIdx === 2 ? 1.22 : 1.34;
             const labelY = pY(ir, lm.sectionTop + (lm.shelfY - lm.sectionTop) * labelFactor);
 
             return (
