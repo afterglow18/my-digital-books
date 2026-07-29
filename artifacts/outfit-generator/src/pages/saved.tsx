@@ -195,7 +195,7 @@ export default function SavedPage() {
             🔓 Reading list is full
           </p>
           <p className="text-xs text-black/60 mt-1 mb-3 leading-snug">
-            You've saved {FREE_OUTFIT_LIMIT} looks — the free limit.
+            You've saved {FREE_OUTFIT_LIMIT} books — the free limit.
             Unlock Forever to save unlimited lists.
           </p>
           <button
@@ -414,7 +414,7 @@ export default function SavedPage() {
           <div className="w-14 h-14 bg-accent rounded-full flex items-center justify-center border-2 border-black mb-4">
             <Bookmark className="w-7 h-7" />
           </div>
-          <h3 className="font-display font-bold text-xl mb-2">No looks saved yet.</h3>
+          <h3 className="font-display font-bold text-xl mb-2">No books saved yet.</h3>
           <p className="text-sm font-medium text-muted-foreground">
             Head to Books, pick some titles, and save lists you love.
           </p>

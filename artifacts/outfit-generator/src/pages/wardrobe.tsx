@@ -239,7 +239,7 @@ export default function WardrobePage() {
           {/* ── Page title ── */}
           <div style={{
             position: "absolute",
-            top: pY(ir, 0.090),
+            top: pY(ir, 0.055),
             left: 8,
             right: 8,
             zIndex: 25,
@@ -248,16 +248,16 @@ export default function WardrobePage() {
             overflow: "hidden",
           }}>
             <div style={{
-              fontFamily: "var(--font-display, serif)",
-              fontWeight: 900,
-              fontSize: Math.max(8, Math.min(pW(ir, 0.030), ir.containerW * 0.040)),
-              letterSpacing: "0.08em",
+              fontFamily: "'Dancing Script', 'Brush Script MT', cursive",
+              fontWeight: 700,
+              fontSize: Math.max(18, Math.min(pW(ir, 0.075), 32)),
+              letterSpacing: "0.02em",
               whiteSpace: "nowrap",
-              textTransform: "uppercase",
-              color: "#1a0800",
+              color: "#F5EDD8",
               lineHeight: 1.1,
+              textShadow: "0 1px 4px rgba(0,0,0,0.35)",
             }}>
-              MY DIGITAL BOOKS
+              My Digital Books
             </div>
           </div>
 
@@ -329,7 +329,7 @@ export default function WardrobePage() {
                     fontSize: Math.max(9, pH(ir, 0.013)),
                     fontWeight: 800,
                     letterSpacing: "0.12em",
-                    color: "#3A2210",
+                    color: "#F5EDD8",
                     fontFamily: "var(--font-display)",
                     textTransform: "uppercase",
                   }}>
@@ -392,7 +392,7 @@ export default function WardrobePage() {
           <button
             onClick={() => navigate("/favorites")}
             data-testid="button-person-icon"
-            aria-label="View saved looks"
+            aria-label="View saved books"
             style={{
               position: "absolute",
               top:    pY(ir, 0.895),
@@ -423,7 +423,7 @@ export default function WardrobePage() {
             }}
           />
 
-          {/* ── SAVE circular button — covers the baked-in circle ── */}
+          {/* ── SAVE tap zone — transparent over the baked-in circle ── */}
           <button
             onClick={() => { setSaveName(""); setIsSaveOpen(true); }}
             aria-label="Save current list"
@@ -435,22 +435,12 @@ export default function WardrobePage() {
               height: pW(ir, 0.148),
               borderRadius: "50%",
               zIndex: 26,
-              background: "linear-gradient(160deg, #E8D4B0 0%, #B8894E 100%)",
-              border: "2px solid #B8894E",
-              boxShadow: "0 2px 8px rgba(120,80,40,0.25)",
+              background: "transparent",
+              border: "none",
               cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 0,
-              lineHeight: 1.15,
               padding: 0,
             }}
-          >
-            <span style={{ fontSize: pW(ir, 0.022), fontWeight: 900, color: "#3A2210", letterSpacing: "0.06em", fontFamily: "var(--font-display)" }}>SAVE</span>
-            <span style={{ fontSize: pW(ir, 0.019), fontWeight: 800, color: "#3A2210", letterSpacing: "0.04em", fontFamily: "var(--font-display)" }}>LIST 🤎</span>
-          </button>
+          />
         </>
       )}
 

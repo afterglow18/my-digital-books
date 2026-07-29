@@ -280,16 +280,16 @@ export default function GeneratePage() {
               overflow: "hidden",
             }}>
               <div style={{
-                fontFamily: "var(--font-display, serif)",
-                fontWeight: 900,
-                fontSize: Math.max(8, Math.min(pW(ir, 0.030), ir.containerH * 0.025)),
-                letterSpacing: "0.08em",
+                fontFamily: "'Dancing Script', 'Brush Script MT', cursive",
+                fontWeight: 700,
+                fontSize: Math.max(18, Math.min(pW(ir, 0.075), 32)),
+                letterSpacing: "0.02em",
                 whiteSpace: "nowrap",
-                textTransform: "uppercase",
-                color: "#1a0800",
+                color: "#F5EDD8",
                 lineHeight: 1.1,
+                textShadow: "0 1px 4px rgba(0,0,0,0.35)",
               }}>
-                MY DIGITAL BOOKS
+                My Digital Books
               </div>
               <div style={{
                 fontFamily: "var(--font-display, serif)",
