@@ -171,7 +171,7 @@ export default function FavoritesPage() {
 
       <header className="mb-5">
         <h1 className="text-4xl font-display font-bold uppercase tracking-tighter mb-1">
-          My Faves 🤎
+          My Faves 💙
         </h1>
         <p className="font-medium text-muted-foreground text-sm">
           Saved items. Hold &amp; drag to reorder.
@@ -203,7 +203,7 @@ export default function FavoritesPage() {
                         bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                         rounded-xl mt-8">
           <div className="w-14 h-14 bg-accent rounded-full flex items-center justify-center border-2 border-black mb-4">
-            <Heart className="w-7 h-7" />
+            <Heart className="w-7 h-7 text-primary fill-primary" />
           </div>
           <h3 className="font-display font-bold text-xl mb-2">No faves yet.</h3>
           <p className="text-sm font-medium text-muted-foreground">

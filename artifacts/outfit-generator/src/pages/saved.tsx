@@ -53,7 +53,7 @@ function ItemPhoto({
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center p-1">
-          <span className="text-[9px] font-bold uppercase text-center leading-tight text-black/30">—</span>
+          <span className="text-[9px] font-bold uppercase text-center leading-tight text-primary/30">—</span>
         </div>
       )}
       {item.isFavorite && (
@@ -175,7 +175,7 @@ export default function SavedPage() {
                             ? "bg-black text-white border-black"
                             : outfitCount >= FREE_OUTFIT_LIMIT - 1
                             ? "bg-primary border-primary text-primary-foreground"
-                            : "bg-white border-black/20 text-black/40 hover:border-black/40"
+                            : "bg-white border-black/20 text-primary/40 hover:border-black/40"
                           }`}
             >
               {outfitCount}/{FREE_OUTFIT_LIMIT} saved
@@ -194,7 +194,7 @@ export default function SavedPage() {
           <p className="font-display font-bold text-sm uppercase tracking-tight">
             🔓 Reading list is full
           </p>
-          <p className="text-xs text-black/60 mt-1 mb-3 leading-snug">
+          <p className="text-xs text-primary/60 mt-1 mb-3 leading-snug">
             You've saved {FREE_OUTFIT_LIMIT} books — the free limit.
             Unlock Forever to save unlimited lists.
           </p>
@@ -303,12 +303,12 @@ export default function SavedPage() {
                       className="w-full text-left group"
                     >
                       {outfit.notes ? (
-                        <p className="text-xs text-black/60 leading-snug flex items-start gap-1">
+                        <p className="text-xs text-primary/60 leading-snug flex items-start gap-1">
                           <span className="flex-1">{outfit.notes}</span>
                           <Pencil className="w-3 h-3 shrink-0 mt-0.5 opacity-0 group-hover:opacity-40 transition-opacity" />
                         </p>
                       ) : (
-                        <p className="text-xs text-black/25 italic">Add notes…</p>
+                        <p className="text-xs text-primary/25 italic">Add notes…</p>
                       )}
                     </button>
                   )}
@@ -332,7 +332,7 @@ export default function SavedPage() {
                                   onClick={() => handleRemoveItem(outfit.id, item.id)}
                                   className="w-3.5 h-3.5 flex items-center justify-center rounded-full bg-black/10 hover:bg-red-100 transition-colors flex-shrink-0"
                                 >
-                                  <X className="w-2.5 h-2.5 text-black/50" />
+                                  <X className="w-2.5 h-2.5 text-primary/50" />
                                 </button>
                               </div>
                             </>
@@ -342,9 +342,9 @@ export default function SavedPage() {
                                 onClick={() => setReplacingSlot({ outfitId: outfit.id, category: slot })}
                                 className="h-28 w-full border-2 border-dashed border-black/25 rounded flex flex-col items-center justify-center gap-1 hover:border-black/50 hover:bg-black/5 transition-colors"
                               >
-                                <Plus className="w-3.5 h-3.5 text-black/30" />
+                                <Plus className="w-3.5 h-3.5 text-primary/30" />
                               </button>
-                              <span className="text-[8px] font-bold uppercase text-black/25 text-center truncate">
+                              <span className="text-[8px] font-bold uppercase text-primary/25 text-center truncate">
                                 {SLOT_LABELS[slot]}
                               </span>
                             </>
@@ -356,7 +356,7 @@ export default function SavedPage() {
 
                   {/* 5 fixed extra slots */}
                   <div className="mt-3 pt-3 border-t border-black/10">
-                    <p className="text-[8px] font-bold uppercase tracking-widest text-black/30 mb-2">Extras</p>
+                    <p className="text-[8px] font-bold uppercase tracking-widest text-primary/30 mb-2">Extras</p>
                     <div className="grid grid-cols-5 gap-1.5">
                       {Array.from({ length: 10 }).map((_, i) => {
                         const item = extras[i];
@@ -371,7 +371,7 @@ export default function SavedPage() {
                                 <img src={getImageUrl(item.imageObjectPath)!} alt={item.name} className="w-full h-full object-contain" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <span className="text-[8px] font-bold text-black/30">—</span>
+                                  <span className="text-[8px] font-bold text-primary/30">—</span>
                                 </div>
                               )}
                             </button>
@@ -391,7 +391,7 @@ export default function SavedPage() {
                             onClick={() => setAddingExtra(outfit.id)}
                             className="aspect-square border-2 border-dashed border-black/25 rounded flex items-center justify-center hover:border-black/50 hover:bg-black/5 transition-colors"
                           >
-                            <Plus className="w-3 h-3 text-black/25" />
+                            <Plus className="w-3 h-3 text-primary/25" />
                           </button>
                         );
                       })}

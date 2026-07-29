@@ -45,18 +45,18 @@ function NavButton({
             sidebar
               ? cn("p-2.5 rounded-xl w-12 h-12",
                   isActive
-                    ? "bg-primary border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                    ? "bg-primary border-primary shadow-[3px_3px_0px_0px_rgba(13,27,56,0.35)]"
                     : "bg-[#fdf6ec] border-black/25 group-hover:border-black/50 group-active:scale-95")
               : cn("p-2.5 rounded-full",
                   isActive
-                    ? "bg-primary border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -translate-y-1"
+                    ? "bg-primary border-primary shadow-[3px_3px_0px_0px_rgba(13,27,56,0.35)] -translate-y-1"
                     : "bg-[#fdf6ec] border-black/30 group-hover:border-black/60 group-active:scale-95"),
           )}
         >
           <Icon
             className={cn(
               "w-6 h-6",
-              isActive ? "text-primary" : "text-muted-foreground",
+              isActive ? "text-primary-foreground" : "text-muted-foreground",
               item.href === "/generate" && isActive ? "animate-pulse" : "",
             )}
             strokeWidth={isActive ? 2.5 : 2}
@@ -64,7 +64,7 @@ function NavButton({
 
           {/* Badge */}
           {item.badge != null && item.badge > 0 && (
-            <div className="absolute -top-2 -right-2 bg-secondary text-primary text-[10px] font-bold border-2 border-primary w-5 h-5 flex items-center justify-center rounded-full shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+            <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] font-bold border-2 border-secondary w-5 h-5 flex items-center justify-center rounded-full shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
               {item.badge > 99 ? "99+" : item.badge}
             </div>
           )}
@@ -74,7 +74,7 @@ function NavButton({
           className={cn(
             "font-bold uppercase tracking-wider transition-colors",
             sidebar ? "text-[9px]" : "text-[10px]",
-            isActive ? "text-primary" : "text-muted-foreground",
+            isActive ? "text-secondary" : "text-muted-foreground",
           )}
         >
           {item.label}
