@@ -41,7 +41,7 @@ const LM = {
     { sectionTop: 0.720, shelfY: 0.855, btnCY: 0.775 },  // row 4 (shelf 4)
   ],
 
-  barY:   0.875,
+  barY:   0.920,
   barBot: 1.000,
 } as const;
 
@@ -505,7 +505,7 @@ export default function GeneratePage() {
                     onClick={handleSpin}
                     disabled={!hasItems}
                     style={{
-                      width: "100%", height: 52, borderRadius: 28,
+                      width: "72%", height: 44, borderRadius: 22,
                       border: "2.5px solid #B8894E",
                       background: hasItems
                         ? "linear-gradient(to bottom, #E8D4B0, #B8894E)"
