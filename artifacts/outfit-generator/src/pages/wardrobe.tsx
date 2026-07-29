@@ -250,7 +250,7 @@ export default function WardrobePage() {
             overflow: "hidden",
           }}>
             <div style={{
-              fontFamily: "'Pinyon Script', 'Dancing Script', 'Brush Script MT', cursive",
+              fontFamily: "'Great Vibes', 'Dancing Script', 'Brush Script MT', cursive",
               fontWeight: 400,
               fontStyle: "normal",
               fontSize: Math.max(22, Math.min(pW(ir, 0.092), 42)),
