@@ -285,14 +285,15 @@ export default function GeneratePage() {
               overflow: "hidden",
             }}>
               <div style={{
-                fontFamily: "'Dancing Script', 'Brush Script MT', cursive",
+                fontFamily: "'Cinzel Decorative', serif",
                 fontWeight: 700,
-                fontSize: Math.max(18, Math.min(pW(ir, 0.075), 32)),
-                letterSpacing: "0.02em",
+                fontStyle: "normal",
+                fontSize: Math.max(22, Math.min(pW(ir, 0.092), 42)),
+                letterSpacing: "0.03em",
                 whiteSpace: "nowrap",
                 color: "#F5EDD8",
                 lineHeight: 1.1,
-                textShadow: "0 1px 4px rgba(0,0,0,0.35)",
+                textShadow: "0 1px 6px rgba(0,0,0,0.55), 0 0 20px rgba(0,0,0,0.25)",
               }}>
                 My Digital Books
               </div>
