@@ -31,16 +31,17 @@ const NAV_H = 90;
 const PINK  = "#E8D4B0";
 
 const LM = {
-  doorL: 0.182,
-  doorR: 0.776,
+  doorL: 0.080,  // inner left wall  — matches wardrobe
+  doorR: 0.920,  // inner right wall — matches wardrobe
+
   rows: [
-    { sectionTop: 0.170, shelfY: 0.265, btnCY: 0.150 },  // OUTFITS  (lid, upper)
-    { sectionTop: 0.305, shelfY: 0.400, btnCY: 0.285 },  // BEAUTY   (lid, lower)
-    { sectionTop: 0.505, shelfY: 0.618, btnCY: 0.485 },  // TOILETRIES (body, upper)
-    { sectionTop: 0.660, shelfY: 0.770, btnCY: 0.640 },  // ESSENTIALS (body, lower)
+    { sectionTop: 0.220, shelfY: 0.415, btnCY: 0.300 },  // row 1 (shelf 1)
+    { sectionTop: 0.420, shelfY: 0.565, btnCY: 0.480 },  // row 2 (shelf 2)
+    { sectionTop: 0.570, shelfY: 0.715, btnCY: 0.630 },  // row 3 (shelf 3)
+    { sectionTop: 0.720, shelfY: 0.855, btnCY: 0.775 },  // row 4 (shelf 4)
   ],
-  // Action bar: from just below FRAGRANCES through the full bottom
-  barY:   0.848,
+
+  barY:   0.875,
   barBot: 1.000,
 } as const;
 
@@ -238,6 +239,9 @@ export default function GeneratePage() {
     ? LM.rows.map(lm => pH(ir, lm.shelfY - lm.sectionTop))
     : LM.rows.map(() => 0);
 
+  // Use the smallest row height so all carousels show photos at the same size — matches wardrobe
+  const uniformPhotoH = Math.max(0, Math.min(...sectionHeights) - 4);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
@@ -309,7 +313,7 @@ export default function GeneratePage() {
               const btnH   = Math.max(32, pH(ir, 0.045));
 
               const label = (names[key as CategoryKey] ?? key).toUpperCase();
-              const labelFactor = rowIdx === 0 ? 0.93 : rowIdx === 1 ? 1.06 : rowIdx === 2 ? 1.22 : 1.38;
+              const labelFactor = rowIdx === 0 ? 0.93 : rowIdx === 1 ? 1.06 : rowIdx === 2 ? 1.22 : 1.10;
               const labelY = pY(ir, lm.sectionTop + (lm.shelfY - lm.sectionTop) * labelFactor);
 
               return (
@@ -362,7 +366,7 @@ export default function GeneratePage() {
                         ref={rowRefs[key]}
                         items={items}
                         onCenteredItem={setCentredHandlers[key]}
-                        maxPhotoH={Math.max(0, sectionHeights[rowIdx] - 4)}
+                        maxPhotoH={uniformPhotoH}
                         disableSwipe
                       />
                     </div>

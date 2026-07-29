@@ -306,7 +306,7 @@ export default function WardrobePage() {
             const btnCY   = pY(ir, lm.btnCY);
             const btnH    = Math.max(32, pH(ir, 0.045));
 
-            const labelFactor = rowIdx === 0 ? 0.93 : rowIdx === 1 ? 1.06 : rowIdx === 2 ? 1.22 : 1.10;
+            const labelFactor = rowIdx === 0 ? 0.93 : rowIdx === 1 ? 1.06 : rowIdx === 2 ? 1.22 : 1.38;
             const labelY = pY(ir, lm.sectionTop + (lm.shelfY - lm.sectionTop) * labelFactor);
 
             return (
@@ -428,17 +428,17 @@ export default function WardrobePage() {
             }}
           />
 
-          {/* ── SAVE tap zone — transparent over the baked-in circle ── */}
+          {/* ── SAVE tap zone — transparent rect over the baked-in pill ── */}
           <button
             onClick={() => { setSaveName(""); setIsSaveOpen(true); }}
             aria-label="Save current list"
             style={{
               position: "absolute",
-              top:    pY(ir, 0.9466) - pW(ir, 0.074),
-              left:   pX(ir, 0.500)  - pW(ir, 0.074),
-              width:  pW(ir, 0.148),
-              height: pW(ir, 0.148),
-              borderRadius: "50%",
+              top:    pY(ir, 0.928),
+              left:   pX(ir, 0.260),
+              width:  pW(ir, 0.480),
+              height: pH(ir, 0.055),
+              borderRadius: 30,
               zIndex: 26,
               background: "transparent",
               border: "none",
