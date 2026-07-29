@@ -1,13 +1,6 @@
 /**
  * UpgradeSheet — three-tier paywall (Monthly / Yearly / Lifetime).
- *
- * Single-screen, no scroll. Lifetime pre-selected as "Best Value".
- * All accent colour uses bg-primary (warm tan hsl(35 55% 82%)).
- *
- * RC package identifiers expected in the default offering:
- *   $rc_monthly   → Monthly  $1.99
- *   $rc_annual    → Yearly   $19.99
- *   $rc_lifetime  → Lifetime $9.99 (one-time)
+ * Visual: plaid navy + tan hero header, navy/tan accent scheme throughout.
  */
 import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
@@ -23,15 +16,22 @@ interface Props {
   onClose: () => void;
 }
 
-// ── Copy ──────────────────────────────────────────────────────────────────────
+// ── Palette ───────────────────────────────────────────────────────────────────
+const NAVY    = "#060E1F";   // deep midnight navy
+const TAN     = "#D4B896";   // app primary tan (hsl 35 55% 82%)
+const TAN_DK  = "#B8894E";   // darker tan — borders & shadows
+const CREAM   = "#F5EAD4";   // warm parchment text
 
-const FEATURES = [
-  "Unlimited clothing items",
-  "Unlimited saved outfits",
-  "Save your entire library",
-  "One-time payment options",
-  "Choose monthly, yearly or lifetime!",
-] as const;
+// CSS plaid: fine tan lines on midnight navy
+const PLAID_BG = `
+  repeating-linear-gradient(0deg,  transparent, transparent 24px, rgba(212,184,150,0.22) 24px, rgba(212,184,150,0.22) 26px),
+  repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(212,184,150,0.22) 24px, rgba(212,184,150,0.22) 26px),
+  repeating-linear-gradient(0deg,  transparent, transparent 80px, rgba(212,184,150,0.10) 80px, rgba(212,184,150,0.10) 83px),
+  repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(212,184,150,0.10) 80px, rgba(212,184,150,0.10) 83px),
+  ${NAVY}
+`.trim();
+
+// ── Copy ──────────────────────────────────────────────────────────────────────
 
 const HEADLINES: Record<UpgradeReason, string> = {
   items:     "UNLOCK YOUR UNLIMITED DIGITAL LIBRARY",
@@ -45,24 +45,18 @@ const SUBTITLES: Record<UpgradeReason, string> = {
   mannequin: "A premium feature — unlock it once.",
 };
 
-// Fallback tier defs (browser — RC not available)
 const TIER_DEFAULTS: Record<TierId, {
-  label: string;
-  price: string;
-  period: string;
-  notes: [string, string];
-  pkgId: string;
-  best?: true;
+  label: string; price: string; period: string;
+  notes: [string, string]; pkgId: string; best?: true;
 }> = {
-  monthly:  { label: "MONTHLY",  price: "$1.99",  period: "/month",   notes: ["Cancel anytime",  "Billed monthly"],  pkgId: "$rc_monthly"  },
-  yearly:   { label: "YEARLY",   price: "$19.99", period: "/year",    notes: ["Save 17%",        "Billed yearly"],   pkgId: "$rc_annual"   },
-  lifetime: { label: "LIFETIME", price: "$9.99",  period: "one-time", notes: ["Pay once",        "Yours forever"],   pkgId: "$rc_lifetime", best: true },
+  monthly:  { label: "MONTHLY",  price: "$1.99",  period: "/month",   notes: ["Cancel anytime", "Billed monthly"],  pkgId: "$rc_monthly"  },
+  yearly:   { label: "YEARLY",   price: "$19.99", period: "/year",    notes: ["Save 17%",       "Billed yearly"],   pkgId: "$rc_annual"   },
+  lifetime: { label: "LIFETIME", price: "$9.99",  period: "one-time", notes: ["Pay once",       "Yours forever"],   pkgId: "$rc_lifetime", best: true },
 };
 
 const TIER_ORDER: TierId[] = ["monthly", "yearly", "lifetime"];
 
 // ── RC helpers ────────────────────────────────────────────────────────────────
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getRcPackage(offerings: any, pkgId: string): any | undefined {
   return offerings?.current?.availablePackages?.find(
@@ -70,7 +64,6 @@ function getRcPackage(offerings: any, pkgId: string): any | undefined {
     (p: any) => p.identifier === pkgId,
   );
 }
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLivePrice(offerings: any, pkgId: string, fallback: string): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,28 +83,28 @@ function TierCard({
       onClick={() => onSelect(id)}
       className="flex-1 flex flex-col rounded-xl border-[3px] transition-all relative overflow-hidden text-left"
       style={{
-        borderColor: selected ? "#000" : "#C9BAA5",
-        background:  selected ? "hsl(35 55% 82%)" : "hsl(35 30% 93%)",
-        boxShadow:   selected ? "3px 3px 0px 0px rgba(0,0,0,1)" : "none",
+        borderColor: selected ? TAN_DK    : "#C9BAA5",
+        background:  selected ? TAN       : "hsl(35 25% 92%)",
+        boxShadow:   selected ? `3px 3px 0px 0px ${TAN_DK}` : "none",
       }}
     >
       {best && (
         <span
           className="absolute top-0 right-0 text-[8px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded-bl-lg"
-          style={{ background: "#C0390B", color: "#fff" }}
+          style={{ background: NAVY, color: CREAM }}
         >
           BEST ★ VALUE
         </span>
       )}
       <div className="px-2.5 pt-3 pb-2.5 flex flex-col gap-1">
-        <p className="text-[9px] font-bold uppercase tracking-widest text-black/50">{label}</p>
-        <p className="font-display font-bold text-[1.3rem] leading-none text-black">{price}</p>
-        <p className="text-[9px] font-semibold text-black/45">{period}</p>
+        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: `${NAVY}99` }}>{label}</p>
+        <p className="font-display font-bold text-[1.3rem] leading-none" style={{ color: NAVY }}>{price}</p>
+        <p className="text-[9px] font-semibold" style={{ color: `${NAVY}88` }}>{period}</p>
         <ul className="flex flex-col gap-0.5 mt-1.5">
           {notes.map((n) => (
             <li key={n} className="flex items-center gap-1">
-              <Check className="w-2.5 h-2.5 shrink-0 text-black/60" strokeWidth={3} />
-              <span className="text-[8.5px] font-semibold text-black/55 leading-tight">{n}</span>
+              <Check className="w-2.5 h-2.5 shrink-0" strokeWidth={3} style={{ color: TAN_DK }} />
+              <span className="text-[8.5px] font-semibold leading-tight" style={{ color: `${NAVY}88` }}>{n}</span>
             </li>
           ))}
         </ul>
@@ -179,48 +172,61 @@ export function UpgradeSheet({ reason, onClose }: Props) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 240 }}
-      className="fixed inset-0 z-[80] flex flex-col max-w-md mx-auto"
-      style={{ background: "#F8F4ED" }}
+      className="fixed inset-0 z-[80] flex flex-col max-w-md mx-auto overflow-hidden"
+      style={{ background: "#F2EAD8" }}
     >
-      {/* Close button */}
-      <div className="flex justify-end px-4 pb-0 flex-shrink-0"
-        style={{ paddingTop: "max(1rem, env(safe-area-inset-top))" }}>
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="w-9 h-9 rounded-full border-2 border-black flex items-center justify-center
-                     bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                     active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Content — fills remaining height, no scroll */}
-      <div className="flex-1 min-h-0 flex flex-col justify-between px-5 pt-3 pb-2">
+      {/* ── Plaid hero header ── */}
+      <div style={{ background: PLAID_BG, flexShrink: 0 }}>
+        {/* Close button row */}
+        <div className="flex justify-end px-4"
+          style={{ paddingTop: "max(1rem, env(safe-area-inset-top))", paddingBottom: "0.5rem" }}>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all
+                       active:translate-y-0.5 active:translate-x-0.5"
+            style={{
+              borderColor: TAN_DK,
+              background: `${NAVY}dd`,
+              boxShadow: `2px 2px 0px 0px ${TAN_DK}`,
+            }}
+          >
+            <X className="w-4 h-4" style={{ color: CREAM }} />
+          </button>
+        </div>
 
         {/* Headline */}
-        <div>
-          <h1 className="font-display font-bold text-[2.1rem] uppercase tracking-tight leading-[0.88]">
+        <div className="px-5 pb-5">
+          <h1
+            className="font-display font-bold text-[2.1rem] uppercase tracking-tight leading-[0.88]"
+            style={{ color: CREAM }}
+          >
             {HEADLINES[reason]}
           </h1>
-          <p className="text-xs font-semibold text-black/45 mt-1.5" style={{ whiteSpace: "pre-line" }}>
+          <p className="text-xs font-semibold mt-1.5" style={{ color: `${CREAM}99`, whiteSpace: "pre-line" }}>
             {SUBTITLES[reason]}
           </p>
         </div>
+      </div>
+
+      {/* ── Body ── */}
+      <div className="flex-1 min-h-0 flex flex-col justify-between px-5 pt-4 pb-2">
 
         {/* Features card */}
-        <div className="rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: "#111" }}>
-          <div className="px-4 py-4 flex flex-col gap-2">
-            <p className="font-display font-bold uppercase text-[1.45rem] leading-[0.92] tracking-tight"
-               style={{ color: "hsl(35 55% 82%)" }}>
+        <div
+          className="rounded-2xl border-[3px] overflow-hidden"
+          style={{ background: TAN, borderColor: TAN_DK, borderWidth: 2 }}
+        >
+          <div className="px-4 py-3 flex flex-col gap-1.5">
+            <p className="font-display font-bold uppercase text-[1.2rem] leading-[0.95] tracking-tight"
+               style={{ color: NAVY }}>
               Unlimited book collections
             </p>
-            <p className="font-display font-bold uppercase text-[1.45rem] leading-[0.92] tracking-tight"
-               style={{ color: "hsl(35 55% 82%)" }}>
+            <p className="font-display font-bold uppercase text-[1.2rem] leading-[0.95] tracking-tight"
+               style={{ color: NAVY }}>
               Unlimited saved lists
             </p>
-            <p className="text-white/60 text-xs font-medium mt-1 leading-snug">
+            <p className="text-xs font-medium mt-1 leading-snug" style={{ color: `${NAVY}88` }}>
               Your entire library, beautifully organized — forever.
             </p>
           </div>
@@ -228,7 +234,8 @@ export function UpgradeSheet({ reason, onClose }: Props) {
 
         {/* Plan selector */}
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-widest text-black/35 text-center mb-1.5">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-center mb-1.5"
+             style={{ color: TAN_DK }}>
             Choose Your Plan
           </p>
           <div className="flex gap-2">
@@ -253,7 +260,7 @@ export function UpgradeSheet({ reason, onClose }: Props) {
 
       </div>
 
-      {/* CTA footer */}
+      {/* ── CTA footer ── */}
       <div
         className="px-5 pt-2 flex flex-col gap-2 flex-shrink-0"
         style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
@@ -267,43 +274,44 @@ export function UpgradeSheet({ reason, onClose }: Props) {
           onClick={handlePurchase}
           disabled={status === "pending"}
           className="w-full py-3.5 rounded-2xl font-display font-bold text-lg uppercase
-                     tracking-tight border-[3px] border-black text-black
-                     active:translate-x-0.5 active:translate-y-0.5 transition-all
-                     disabled:opacity-60 disabled:cursor-not-allowed bg-primary"
+                     tracking-tight border-[3px] transition-all
+                     active:translate-x-0.5 active:translate-y-0.5
+                     disabled:opacity-60 disabled:cursor-not-allowed"
           style={{
-            boxShadow: status === "pending" ? "none" : "4px 4px 0px 0px rgba(0,0,0,1)",
+            background:  TAN,
+            borderColor: TAN_DK,
+            color:       NAVY,
+            boxShadow:   status === "pending" ? "none" : `4px 4px 0px 0px ${TAN_DK}`,
           }}
         >
           {ctaLabel}
         </button>
         <button
           onClick={onClose}
-          className="text-sm font-semibold text-black/35 text-center hover:text-black/55 transition-colors"
+          className="text-sm font-semibold text-center transition-colors"
+          style={{ color: TAN_DK }}
         >
           Maybe Later
         </button>
-
-        {/* Restore Purchases */}
         <button
           onClick={() => restore()}
           disabled={isRestoring}
-          className="text-xs font-semibold text-black/30 text-center hover:text-black/50 transition-colors disabled:opacity-50"
+          className="text-xs font-semibold text-center transition-colors disabled:opacity-50"
+          style={{ color: TAN_DK }}
         >
           {isRestoring ? "Restoring…" : "Restore Purchases"}
         </button>
-
-        {/* Legal links */}
-        <p className="text-[10px] text-black/25 text-center leading-relaxed">
+        <p className="text-[10px] text-center leading-relaxed" style={{ color: TAN_DK }}>
           <button
             onClick={() => openUrl(TERMS_URL)}
-            className="underline underline-offset-2 hover:text-black/45 transition-colors"
+            className="underline underline-offset-2 transition-colors"
           >
             Terms of Use
           </button>
           {"  ·  "}
           <button
             onClick={() => openUrl(PRIVACY_URL)}
-            className="underline underline-offset-2 hover:text-black/45 transition-colors"
+            className="underline underline-offset-2 transition-colors"
           >
             Privacy Policy
           </button>

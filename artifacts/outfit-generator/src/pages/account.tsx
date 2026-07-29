@@ -1,10 +1,6 @@
 /**
  * Settings / Account page
- *
- * Layout (top to bottom):
- *   1. MY PLAN      — current plan badge, upgrade CTA, restore link
- *   2. BACKUP & RESTORE — export/import with warning text
- *   3. MY DIGITAL BOOKS — app version + tagline
+ * Visual: deep midnight navy (#060E1F) accents, rich tan/gold text & buttons.
  */
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +17,12 @@ import {
 import { Capacitor } from "@capacitor/core";
 import { useBiometricLock } from "@/context/BiometricLockContext";
 
+// ── Palette ───────────────────────────────────────────────────────────────────
+const NAVY  = "#1B3A6B";
+const GOLD  = "#C9A227";
+const CREAM = "#F5EAD4";
+const TAN   = "#C4A882";
+
 // ─── Card shell ───────────────────────────────────────────────────────────────
 
 function Card({
@@ -33,20 +35,31 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border-[3px] border-black rounded-2xl overflow-hidden">
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ border: `3px solid ${NAVY}`, background: "#FFFDF8" }}
+    >
       {/* Header row */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b-[3px] border-black">
+      <div
+        className="flex items-center gap-2 px-4 py-3"
+        style={{ background: NAVY, borderBottom: `3px solid ${NAVY}` }}
+      >
         <span className="text-xl leading-none">{emoji}</span>
-        <h2 className="font-display font-bold text-base uppercase tracking-tight">{title}</h2>
+        <h2
+          className="font-display font-bold text-base uppercase tracking-tight"
+          style={{ color: CREAM }}
+        >
+          {title}
+        </h2>
       </div>
       <div className="p-4 flex flex-col gap-3">{children}</div>
     </div>
   );
 }
 
-// ─── Big yellow action button ─────────────────────────────────────────────────
+// ─── Navy action button ───────────────────────────────────────────────────────
 
-function YellowButton({
+function NavyButton({
   onClick,
   pending,
   icon: Icon,
@@ -62,15 +75,20 @@ function YellowButton({
       onClick={onClick}
       disabled={!!pending}
       className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl
-                 border-[3px] border-black font-display font-bold text-sm uppercase
-                 tracking-tight bg-primary text-black
+                 font-display font-bold text-sm uppercase tracking-tight
                  active:translate-x-0.5 active:translate-y-0.5 transition-all
                  disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{
+        background:  NAVY,
+        border:      `3px solid ${NAVY}`,
+        color:       CREAM,
+        boxShadow:   `3px 3px 0px 0px ${GOLD}`,
+      }}
     >
       {pending ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <Loader2 className="w-4 h-4 animate-spin" style={{ color: GOLD }} />
       ) : (
-        <Icon className="w-4 h-4" />
+        <Icon className="w-4 h-4" style={{ color: GOLD }} />
       )}
       {label}
     </button>
@@ -81,18 +99,11 @@ function YellowButton({
 
 export default function AccountPage() {
   const qc = useQueryClient();
-  const {
-    isSubscribed,
-    restore,
-    isRestoring,
-  } = useSubscription();
+  const { isSubscribed, restore, isRestoring } = useSubscription();
 
   const [showUpgrade, setShowUpgrade] = useState(false);
-
   const { isLockEnabled, setLockEnabled } = useBiometricLock();
   const [lockPending, setLockPending] = useState(false);
-  // Show the toggle on any native platform — no biometry check on mount.
-  // The actual Face ID / Touch ID dialog only fires when the user taps the toggle.
   const showBiometricToggle = Capacitor.isNativePlatform();
 
   const handleLockToggle = async () => {
@@ -109,8 +120,6 @@ export default function AccountPage() {
     setMsg({ type, text });
     setTimeout(() => setMsg(null), 4500);
   };
-
-  // ── Handlers ────────────────────────────────────────────────────────────────
 
   const handleExport = async () => {
     setExportPending(true);
@@ -157,11 +166,14 @@ export default function AccountPage() {
     <>
     <div
       className="min-h-full flex flex-col px-4 pb-10"
-      style={{ paddingTop: "max(2rem, env(safe-area-inset-top))", background: "#F5F0E8" }}
+      style={{ paddingTop: "max(2rem, env(safe-area-inset-top))", background: "#F2EAD8" }}
     >
       {/* Page title */}
       <header className="mb-5">
-        <h1 className="font-display font-bold text-4xl uppercase tracking-tighter leading-none">
+        <h1
+          className="font-display font-bold text-4xl uppercase tracking-tighter leading-none"
+          style={{ color: NAVY }}
+        >
           My Digital<br />Books
         </h1>
       </header>
@@ -174,8 +186,12 @@ export default function AccountPage() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className={`mb-4 px-4 py-3 rounded-xl border-2 border-black text-sm font-medium flex items-start gap-2
-              ${msg.type === "success" ? "bg-green-50 text-green-800" : "bg-amber-50 text-amber-800"}`}
+            className="mb-4 px-4 py-3 rounded-xl text-sm font-medium flex items-start gap-2"
+            style={{
+              border: `2px solid ${NAVY}`,
+              background: msg.type === "success" ? "#EAF4E8" : "#FFF3E0",
+              color: msg.type === "success" ? "#1A4A1A" : "#7A3A00",
+            }}
           >
             {msg.type === "success"
               ? <Check className="w-4 h-4 shrink-0 mt-0.5" />
@@ -191,23 +207,29 @@ export default function AccountPage() {
         <Card emoji="👑" title="My Plan">
           {/* Current plan row */}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-black/70">Current plan</span>
+            <span className="text-sm font-medium" style={{ color: `${NAVY}99` }}>Current plan</span>
             <span
-              className="text-sm font-bold px-3 py-0.5 rounded-full border-2 border-black"
-              style={{ background: isSubscribed ? "#F5C842" : "transparent" }}
+              className="text-sm font-bold px-3 py-0.5 rounded-full"
+              style={{
+                border: `2px solid ${NAVY}`,
+                background: isSubscribed ? GOLD : "transparent",
+                color: isSubscribed ? NAVY : NAVY,
+              }}
             >
               {isSubscribed ? "Pro" : "Free"}
             </span>
           </div>
 
           {isSubscribed ? (
-            <div className="flex items-center gap-2 text-sm font-semibold text-green-700
-                            bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+            <div
+              className="flex items-center gap-2 text-sm font-semibold rounded-lg px-3 py-2"
+              style={{ background: "#EAF4E8", color: "#1A4A1A", border: "1px solid #A8D4A0" }}
+            >
               <Check className="w-4 h-4 shrink-0" />
-              Pro Stylist active — unlimited everything
+              Pro active — unlimited everything
             </div>
           ) : (
-            <YellowButton
+            <NavyButton
               onClick={() => setShowUpgrade(true)}
               icon={() => null}
               label="Lifetime Unlock — $9.99"
@@ -218,8 +240,8 @@ export default function AccountPage() {
           <button
             onClick={handleRestore}
             disabled={isRestoring}
-            className="flex items-center justify-center gap-1.5 text-sm font-medium text-black/50
-                       hover:text-black/70 transition-colors mx-auto"
+            className="flex items-center justify-center gap-1.5 text-sm font-medium transition-colors mx-auto"
+            style={{ color: TAN }}
           >
             <RefreshCw className="w-3.5 h-3.5" />
             {isRestoring ? "Restoring…" : "Restore Purchases"}
@@ -231,12 +253,12 @@ export default function AccountPage() {
           <Card emoji="🔒" title="Privacy & Security">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                <ShieldCheck className="w-5 h-5 shrink-0 text-black/60" />
+                <ShieldCheck className="w-5 h-5 shrink-0" style={{ color: TAN }} />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-black leading-tight">
+                  <p className="text-sm font-semibold leading-tight" style={{ color: NAVY }}>
                     Lock with Face ID / Touch ID
                   </p>
-                  <p className="text-xs text-black/45 leading-snug mt-0.5">
+                  <p className="text-xs leading-snug mt-0.5" style={{ color: `${NAVY}66` }}>
                     Require biometrics when opening the app or returning from background.
                   </p>
                 </div>
@@ -248,18 +270,18 @@ export default function AccountPage() {
                 aria-checked={isLockEnabled}
                 onClick={handleLockToggle}
                 disabled={lockPending}
-                className="shrink-0 relative w-12 h-7 rounded-full border-[2.5px] border-black
-                           transition-all disabled:opacity-50"
+                className="shrink-0 relative w-12 h-7 rounded-full transition-all disabled:opacity-50"
                 style={{
-                  background: isLockEnabled ? "#1a0800" : "#D9CFC3",
-                  boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)",
+                  border: `2.5px solid ${NAVY}`,
+                  background: isLockEnabled ? NAVY : "#D9CFC3",
+                  boxShadow: `2px 2px 0px 0px ${GOLD}`,
                 }}
               >
                 <span
-                  className="absolute top-0.5 w-5 h-5 rounded-full border-[2px] border-black
-                               transition-all duration-200"
+                  className="absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200"
                   style={{
-                    background: "#F5F0E8",
+                    border: `2px solid ${NAVY}`,
+                    background: isLockEnabled ? GOLD : CREAM,
                     left: isLockEnabled ? "calc(100% - 1.375rem)" : "0.125rem",
                   }}
                 />
@@ -270,12 +292,12 @@ export default function AccountPage() {
 
         {/* ── 3. BACKUP & RESTORE ─────────────────────────────────────────── */}
         <Card emoji="💾" title="Backup & Restore">
-          <p className="text-sm text-black/60 leading-snug">
+          <p className="text-sm leading-snug" style={{ color: `${NAVY}88` }}>
             Export your library to a file. Save it to iCloud Drive or Files to
             keep it safe across phone upgrades.
           </p>
 
-          <YellowButton
+          <NavyButton
             onClick={handleExport}
             pending={exportPending}
             icon={Download}
@@ -288,24 +310,24 @@ export default function AccountPage() {
             Export a backup first to keep it safe.
           </p>
 
-          <YellowButton
+          <NavyButton
             onClick={handleImport}
             pending={importPending}
             icon={Upload}
             label="Import Backup"
           />
 
-          <p className="text-xs text-black/40 text-center leading-snug">
+          <p className="text-xs text-center leading-snug" style={{ color: `${NAVY}55` }}>
             Importing replaces your current library with the backup.
           </p>
         </Card>
 
-        {/* ── 3. APP INFO ─────────────────────────────────────────────────── */}
+        {/* ── 4. APP INFO ─────────────────────────────────────────────────── */}
         <Card emoji="📚" title="My Digital Books">
-          <p className="text-sm text-black/55 leading-snug">
+          <p className="text-sm leading-snug" style={{ color: `${NAVY}88` }}>
             Version 1.0.0
           </p>
-          <p className="text-sm text-black/55 leading-snug">
+          <p className="text-sm leading-snug" style={{ color: `${NAVY}88` }}>
             Your library stays on your device, works offline, and can be
             backed up with iCloud.
           </p>

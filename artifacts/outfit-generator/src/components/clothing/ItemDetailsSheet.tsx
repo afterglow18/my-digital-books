@@ -24,12 +24,13 @@ import {
 } from "@/hooks/useLocalDB";
 import { useQueryClient } from "@tanstack/react-query";
 import { getImageUrl } from "@/lib/utils";
+import { useCategoryNames, type CategoryKey } from "@/hooks/useCategoryNames";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const SEASON_OPTIONS    = ["", "Spring", "Summer", "Fall", "Winter", "All Season"];
 const OCCASION_OPTIONS  = ["", "Casual", "Work", "Formal", "Sport", "Special Event"];
-const CATEGORY_OPTIONS  = ["outfits", "beauty", "toiletries", "essentials"];
+// CATEGORY_OPTIONS built dynamically from useCategoryNames inside the component
 
 function Field({
   label,
@@ -71,8 +72,11 @@ function SelectField({
   label: string;
   value: string;
   onChange: (v: string) => void;
-  options: string[];
+  options: string[] | { label: string; value: string }[];
 }) {
+  const normalised = (options as Array<string | { label: string; value: string }>).map((o) =>
+    typeof o === "string" ? { label: o || `— ${label} —`, value: o } : o,
+  );
   return (
     <div className="flex flex-col gap-1">
       <label className="text-[10px] font-bold uppercase tracking-widest text-black/40">
@@ -86,9 +90,9 @@ function SelectField({
                      text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-primary
                      cursor-pointer"
         >
-          {options.map((o) => (
-            <option key={o} value={o}>
-              {o || `— ${label} —`}
+          {normalised.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
             </option>
           ))}
         </select>
@@ -153,6 +157,7 @@ function isDirty(form: FormState, item: ClothingItem): boolean {
 }
 
 export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetProps) {
+  const { names } = useCategoryNames();
   const [form, setForm]           = useState<FormState | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -436,7 +441,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
         {/* Price + Date */}
         <div className="grid grid-cols-2 gap-3">
           <Field label="Purchase Price" value={form.purchasePrice} onChange={patch("purchasePrice") as (v: string) => void} placeholder="$49.99" />
-          <Field label="Purchase Date"  value={form.purchaseDate}  onChange={patch("purchaseDate") as (v: string) => void}  type="date" />
+          <Field label="Date"  value={form.purchaseDate}  onChange={patch("purchaseDate") as (v: string) => void}  type="date" />
         </div>
 
         {/* Notes */}
@@ -461,7 +466,12 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
             label="Category"
             value={form.category}
             onChange={patch("category") as (v: string) => void}
-            options={CATEGORY_OPTIONS}
+            options={[
+              { value: "outfits",    label: names["outfits"]    ?? "Books"     },
+              { value: "beauty",     label: names["beauty"]     ?? "Authors"   },
+              { value: "toiletries", label: names["toiletries"] ?? "Series"    },
+              { value: "essentials", label: names["essentials"] ?? "Bookmarks" },
+            ]}
           />
           <div className="flex flex-col gap-1 opacity-50 pointer-events-none">
             <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">Times Worn</span>

@@ -25,17 +25,11 @@ import {
   blobToDataUrl,
   dataUrlToBlob,
 } from "@/lib/backgroundRemoval";
+import { useCategoryNames, type CategoryKey } from "@/hooks/useCategoryNames";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 type Category = "outfits" | "beauty" | "toiletries" | "essentials";
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  outfits:    "Fiction",
-  beauty:     "Non-Fiction",
-  toiletries: "Self-Help",
-  essentials: "Wishlisted",
-};
 
 type Phase =
   | "pick"       // two-button landing screen
@@ -103,6 +97,7 @@ interface Props {
 }
 
 export function QuickAddSheet({ open, onOpenChange, category, existingCount, onCreated }: Props) {
+  const { names } = useCategoryNames();
   const [phase,        setPhase]        = useState<Phase>("pick");
   const [errorMsg,     setErrorMsg]     = useState<string | null>(null);
   const [originalBlob, setOriginalBlob] = useState<Blob | null>(null);
@@ -205,7 +200,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
 
     try {
       const path     = await blobToDataUrl(blob);
-      const label    = CATEGORY_LABELS[category];
+      const label    = names[category as CategoryKey] ?? category;
       const n        = existingCount + 1;
       const autoName = n === 1 ? label : `${label} ${n}`;
 
@@ -235,9 +230,20 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
 
   const saveOneBlob = useCallback(async (blob: Blob, index: number): Promise<boolean> => {
     try {
-      const jpeg     = await encodeForUpload(blob);
-      const path     = await blobToDataUrl(jpeg);
-      const label    = CATEGORY_LABELS[category];
+      const jpeg  = await encodeForUpload(blob);
+
+      // Attempt background removal; fall back to original if it fails
+      let finalBlob: Blob = jpeg;
+      try {
+        const dataUrl    = await blobToDataUrl(jpeg);
+        const cleanedUrl = await removeBackground(dataUrl);
+        finalBlob        = await dataUrlToBlob(cleanedUrl);
+      } catch {
+        // background removal failed — use original JPEG
+      }
+
+      const path     = await blobToDataUrl(finalBlob);
+      const label    = names[category as CategoryKey] ?? category;
       const n        = existingCount + index + 1;
       const autoName = n === 1 ? label : `${label} ${n}`;
       await new Promise<void>((resolve, reject) => {
@@ -258,7 +264,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
     } catch {
       return false;
     }
-  }, [category, existingCount, createItem, queryClient, onCreated]);
+  }, [category, existingCount, createItem, queryClient, onCreated, names]);
 
   const handleFiles = useCallback(async (files: File[]) => {
     if (!files.length) return;
@@ -298,7 +304,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
 
   if (!open) return null;
 
-  const label = CATEGORY_LABELS[category];
+  const label = names[category as CategoryKey] ?? category;
 
   return (
     <motion.div
@@ -537,14 +543,14 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </button>
               <button
                 onClick={handleSave}
-                disabled={bgProcessing}
+                disabled={bgProcessing && selected !== "original"}
                 className="flex-1 border-4 border-black rounded-2xl bg-primary py-3
                            font-display font-bold text-sm uppercase tracking-tight
                            shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
                            active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all
                            disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-x-0 disabled:active:translate-y-0 disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
               >
-                {bgProcessing ? "Processing…" : "✓ Save to Library"}
+                {bgProcessing && selected !== "original" ? "Processing…" : "✓ Save to Library"}
               </button>
             </div>
           </div>

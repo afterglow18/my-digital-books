@@ -196,8 +196,9 @@ export default function WelcomePage({ onEnter }: Props) {
                   fontWeight: 700,
                   fontSize: SW * 0.22,
                   lineHeight: 1.1,
-                  color: "#D4AF37",
-                  textShadow: "0 2px 8px rgba(0,0,0,0.70)",
+                  color: "#1B2B4B",
+                  WebkitTextStroke: `${SW * 0.006}px #D4AF37`,
+                  textShadow: "0 2px 8px rgba(0,0,0,0.40)",
                   textAlign: "center",
                 }}>
                   Welcome

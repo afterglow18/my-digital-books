@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ClosetRow, ClosetRowHandle } from "@/components/ClosetRow";
 import { useLayoutContext } from "@/components/layout/AppLayout";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCategoryNames, type CategoryKey } from "@/hooks/useCategoryNames";
 
 // ── Layout constants (same as wardrobe.tsx) ───────────────────────────────────
 const IMG_W = 1024;
@@ -102,6 +103,10 @@ export default function GeneratePage() {
   const [centred,    setCentred]    = useState<Partial<Record<RowKey, ClothingItem>>>({});
   const [isSaveOpen, setIsSaveOpen] = useState(false);
   const [saveName,   setSaveName]   = useState("");
+  const [editingKey,  setEditingKey]  = useState<CategoryKey | null>(null);
+  const [editDraft,   setEditDraft]   = useState("");
+
+  const { names, setName } = useCategoryNames();
 
   const rowDataRef = useRef<Record<RowKey, ClothingItem[]>>({
     outfits: [], beauty: [], toiletries: [], essentials: [],
@@ -314,35 +319,47 @@ export default function GeneratePage() {
               const btnCY  = pY(ir, lm.btnCY);
               const btnH   = Math.max(32, pH(ir, 0.045));
 
-              const BOOK_LABELS: Record<string, string> = { outfits: "FICTION", beauty: "NON-FICTION", toiletries: "SELF-HELP", essentials: "WISHLISTED" };
-              const label = BOOK_LABELS[key] ?? key.toUpperCase();
-              const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08);
+              const label = (names[key as CategoryKey] ?? key).toUpperCase();
+              const labelFactor = rowIdx === 0 ? 0.82 : 0.96;
+              const labelY = pY(ir, lm.sectionTop + (lm.shelfY - lm.sectionTop) * labelFactor);
 
               return (
                 <React.Fragment key={key}>
 
-                  {/* ── Category label ── */}
-                  <div style={{
-                    position: "absolute",
-                    top: labelY,
-                    left: carLeft,
-                    width: carW,
-                    transform: "translateY(-50%)",
-                    zIndex: 12,
-                    textAlign: "center",
-                    pointerEvents: "none",
-                  }}>
+                  {/* ── Category label (tap to rename) ── */}
+                  <button
+                    onClick={() => { setEditingKey(key as CategoryKey); setEditDraft(names[key as CategoryKey] ?? ""); }}
+                    aria-label={`Rename ${label}`}
+                    style={{
+                      position: "absolute",
+                      top: labelY,
+                      left: carLeft,
+                      width: carW,
+                      transform: "translateY(-50%)",
+                      zIndex: 12,
+                      textAlign: "center",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 4,
+                    }}
+                  >
                     <span style={{
                       fontSize: Math.max(9, pH(ir, 0.013)),
                       fontWeight: 800,
                       letterSpacing: "0.12em",
-                      color: "#3A2210",
+                      color: "#F5EDD8",
                       fontFamily: "var(--font-display)",
                       textTransform: "uppercase",
                     }}>
                       {label}
                     </span>
-                  </div>
+                    <span style={{ fontSize: Math.max(7, pH(ir, 0.010)), opacity: 0.5, color: "#F5EDD8" }}>✎</span>
+                  </button>
 
                   {items.length > 0 ? (
                     <div
@@ -561,12 +578,12 @@ export default function GeneratePage() {
                       onClick={handleRespin}
                       style={{
                         flexGrow: 1, flexShrink: 1, flexBasis: "0%", minWidth: 0,
-                        height: 54, borderRadius: 28,
+                        height: 68, borderRadius: 34,
                         border: "2.5px solid #B8894E",
                         background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
                         color: "#4A3A3A",
                         fontFamily: "var(--font-display)",
-                        fontWeight: 800, fontSize: 14,
+                        fontWeight: 800, fontSize: 17,
                         letterSpacing: "-0.01em", textTransform: "uppercase",
                         whiteSpace: "nowrap",
                         boxShadow: "2px 2px 0 rgba(0,0,0,0.85)",
@@ -577,7 +594,7 @@ export default function GeneratePage() {
                       }}
                     >
                       <span>Try Again</span>
-                      <span style={{ fontSize: 14, lineHeight: 1 }}>✨</span>
+                      <span style={{ fontSize: 16, lineHeight: 1 }}>✨</span>
                     </button>
 
                     <button
@@ -585,12 +602,12 @@ export default function GeneratePage() {
                       disabled={!canSave}
                       style={{
                         flexGrow: 1, flexShrink: 1, flexBasis: "0%", minWidth: 0,
-                        height: 54, borderRadius: 28,
+                        height: 68, borderRadius: 34,
                         border: "2.5px solid #B8894E",
                         background: canSave ? "#fff" : "rgba(240,240,240,0.80)",
                         color: "#3A2210",
                         fontFamily: "var(--font-display)",
-                        fontWeight: 800, fontSize: 14,
+                        fontWeight: 800, fontSize: 17,
                         letterSpacing: "-0.01em", textTransform: "uppercase",
                         whiteSpace: "nowrap",
                         boxShadow: canSave ? "2px 2px 0 rgba(0,0,0,0.85)" : "none",
@@ -602,7 +619,7 @@ export default function GeneratePage() {
                       }}
                     >
                       <span>Save</span>
-                      <span style={{ fontSize: 14, lineHeight: 1 }}>♡</span>
+                      <span style={{ fontSize: 16, lineHeight: 1 }}>♡</span>
                     </button>
                   </motion.div>
                 )}
@@ -666,6 +683,94 @@ export default function GeneratePage() {
           </>
         );
       })()}
+
+      {/* ── Rename category modal ── */}
+      <AnimatePresence>
+        {editingKey && (
+          <motion.div
+            key="rename-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "absolute", inset: 0, zIndex: 90,
+              background: "rgba(0,0,0,0.50)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "0 24px",
+            }}
+            onClick={(e) => { if (e.target === e.currentTarget) setEditingKey(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 12 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.92, y: 12 }}
+              style={{
+                background: "#fff", borderRadius: 20,
+                border: "2.5px solid #000",
+                boxShadow: "4px 4px 0 #000",
+                padding: "24px 20px 20px",
+                width: "100%", maxWidth: 340,
+              }}
+            >
+              <p style={{ fontWeight: 800, fontSize: 15, fontFamily: "var(--font-display)", marginBottom: 4 }}>
+                Rename row
+              </p>
+              <p style={{ fontSize: 12, color: "rgba(0,0,0,0.45)", marginBottom: 14, fontFamily: "var(--font-display)" }}>
+                This name appears everywhere in the app.
+              </p>
+              <input
+                autoFocus
+                value={editDraft}
+                onChange={e => setEditDraft(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && editDraft.trim() && editingKey) {
+                    setName(editingKey, editDraft.trim());
+                    setEditingKey(null);
+                  }
+                  if (e.key === "Escape") setEditingKey(null);
+                }}
+                placeholder="e.g. Fiction, Favourites…"
+                maxLength={24}
+                style={{
+                  width: "100%", height: 42, borderRadius: 10,
+                  border: "2px solid #000", padding: "0 12px",
+                  fontSize: 14, fontFamily: "var(--font-display)",
+                  boxSizing: "border-box", marginBottom: 12, outline: "none",
+                }}
+              />
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={() => setEditingKey(null)}
+                  style={{
+                    flex: 1, height: 40, borderRadius: 20,
+                    border: "2px solid #000", background: "#fff",
+                    fontWeight: 700, fontSize: 13, cursor: "pointer",
+                    fontFamily: "var(--font-display)",
+                  }}
+                >Cancel</button>
+                <button
+                  onClick={() => {
+                    if (editDraft.trim() && editingKey) {
+                      setName(editingKey, editDraft.trim());
+                      setEditingKey(null);
+                    }
+                  }}
+                  disabled={!editDraft.trim()}
+                  style={{
+                    flex: 1, height: 40, borderRadius: 20,
+                    border: "2px solid #B8894E",
+                    background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
+                    color: "#3A2210", fontWeight: 800, fontSize: 13,
+                    cursor: editDraft.trim() ? "pointer" : "default",
+                    opacity: editDraft.trim() ? 1 : 0.45,
+                    fontFamily: "var(--font-display)",
+                  }}
+                >Save ♡</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

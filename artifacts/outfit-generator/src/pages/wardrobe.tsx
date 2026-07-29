@@ -38,16 +38,17 @@ import { UpgradeSheet, UpgradeReason } from "@/components/paywall/UpgradeSheet";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { FREE_ITEM_LIMIT } from "@/lib/entitlements";
+import { useCategoryNames } from "@/hooks/useCategoryNames";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RowKey   = "outfits" | "beauty" | "toiletries" | "essentials";
 type Category = "outfits" | "beauty" | "toiletries" | "essentials";
 
-const ROWS: { key: RowKey; btnLabel: string }[] = [
-  { key: "outfits",    btnLabel: "+ ADD FICTION"     },
-  { key: "beauty",     btnLabel: "+ ADD NON-FICTION" },
-  { key: "toiletries", btnLabel: "+ ADD SELF-HELP"   },
-  { key: "essentials", btnLabel: "+ ADD WISHLISTED"  },
+const ROWS: { key: RowKey }[] = [
+  { key: "outfits"    },
+  { key: "beauty"     },
+  { key: "toiletries" },
+  { key: "essentials" },
 ];
 
 // ── Image constants ───────────────────────────────────────────────────────────
@@ -128,6 +129,7 @@ export default function WardrobePage() {
   const [saveName,      setSaveName]      = useState("");
   const [saveSuccess,   setSaveSuccess]   = useState(false);
 
+  const { names } = useCategoryNames();
   const saveOutfit = useSaveOutfit();
 
   const { data: outfitsItems  = [] } = useListClothing({ category: "outfits"    }, { query: { queryKey: getListClothingQueryKey({ category: "outfits"    }) } });
@@ -239,7 +241,7 @@ export default function WardrobePage() {
           {/* ── Page title ── */}
           <div style={{
             position: "absolute",
-            top: pY(ir, 0.055),
+            top: pY(ir, 0.022),
             left: 8,
             right: 8,
             zIndex: 25,
@@ -248,14 +250,15 @@ export default function WardrobePage() {
             overflow: "hidden",
           }}>
             <div style={{
-              fontFamily: "'Dancing Script', 'Brush Script MT', cursive",
-              fontWeight: 700,
-              fontSize: Math.max(18, Math.min(pW(ir, 0.075), 32)),
-              letterSpacing: "0.02em",
+              fontFamily: "'Pinyon Script', 'Dancing Script', 'Brush Script MT', cursive",
+              fontWeight: 400,
+              fontStyle: "normal",
+              fontSize: Math.max(22, Math.min(pW(ir, 0.092), 42)),
+              letterSpacing: "0.03em",
               whiteSpace: "nowrap",
               color: "#F5EDD8",
               lineHeight: 1.1,
-              textShadow: "0 1px 4px rgba(0,0,0,0.35)",
+              textShadow: "0 1px 6px rgba(0,0,0,0.55), 0 0 20px rgba(0,0,0,0.25)",
             }}>
               My Digital Books
             </div>
@@ -289,7 +292,8 @@ export default function WardrobePage() {
           )}
 
           {/* ── 4 shelf rows ── */}
-          {ROWS.map(({ key, btnLabel }, rowIdx) => {
+          {ROWS.map(({ key }, rowIdx) => {
+            const btnLabel = `+ ADD ${(names[key] ?? key).toUpperCase()}`;
             const lm      = LM.rows[rowIdx];
             const items   = rowData[key];
 
@@ -302,7 +306,8 @@ export default function WardrobePage() {
             const btnCY   = pY(ir, lm.btnCY);
             const btnH    = Math.max(32, pH(ir, 0.045));
 
-            const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08);
+            const labelFactor = rowIdx === 0 ? 0.82 : 0.96;
+            const labelY = pY(ir, lm.sectionTop + (lm.shelfY - lm.sectionTop) * labelFactor);
 
             return (
               <React.Fragment key={key}>
