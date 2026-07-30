@@ -387,7 +387,6 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                          shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]
                          active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
             >
-              <Check className="w-4 h-4 text-[#0D1B38]" />
               ✓ Logged
             </button>
           )}
