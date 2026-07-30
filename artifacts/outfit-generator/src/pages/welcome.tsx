@@ -106,24 +106,6 @@ export default function WelcomePage({ onEnter }: Props) {
           pointerEvents: "none",
         }}
       />
-      {/* ── Full-screen hero — expands during revealing ───────────────────── */}
-      <motion.img
-        src="/welcome-hero.png"
-        alt=""
-        draggable={false}
-        animate={isReveal ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.26 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          position: "absolute",
-          top: "env(safe-area-inset-top)", left: 0, right: 0, bottom: 0,
-          width: "100%",
-          height: "calc(100% - env(safe-area-inset-top))",
-          objectFit: "fill",
-          zIndex: 8,
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
-      />
 
       {/* ── Phase 1 hero overlay — shown for 2.5 s then fades out ─────────── */}
       <AnimatePresence>
@@ -138,14 +120,14 @@ export default function WelcomePage({ onEnter }: Props) {
               overflow: "hidden",
             }}
           >
-            {/* Full-cover hero image */}
+            {/* Full-cover hero image — contain so the full image shows without cropping */}
             <img
               src="/welcome-hero.png"
               alt=""
               draggable={false}
               style={{
                 width: "100%", height: "100%",
-                objectFit: "cover", objectPosition: "center top",
+                objectFit: "contain", objectPosition: "center center",
                 display: "block", userSelect: "none",
               }}
             />
