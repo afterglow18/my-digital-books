@@ -388,7 +388,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                          active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
             >
               <Check className="w-4 h-4 text-[#0D1B38]" />
-              Logged ✓ · Undo
+              ✓ Logged
             </button>
           )}
         </div>
