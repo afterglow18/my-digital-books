@@ -323,7 +323,7 @@ export default function GeneratePage() {
 
                   {/* ── Category label (tap to rename) ── */}
                   <button
-                    onClick={() => { setEditingKey(key as CategoryKey); setEditDraft(names[key as CategoryKey] ?? ""); }}
+                    onClick={() => { if (rowIdx === 0) return; setEditingKey(key as CategoryKey); setEditDraft(names[key as CategoryKey] ?? ""); }}
                     aria-label={`Rename ${label}`}
                     style={{
                       position: "absolute",
