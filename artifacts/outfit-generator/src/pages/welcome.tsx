@@ -18,8 +18,10 @@ export default function WelcomePage({ onEnter }: Props) {
   const [phase, setPhase] = useState<"hero" | "idle" | "opening" | "revealing" | "exiting">("hero");
   const [vw, setVw] = useState(375);
   const [vh, setVh] = useState(700);
-  const calledRef = useRef(false);
-  const timers    = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const calledRef     = useRef(false);
+  const timers        = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const backCoverRef  = useRef<HTMLDivElement>(null);
+  const [curtainRect, setCurtainRect] = useState<{left:number;top:number;width:number;height:number}|null>(null);
 
   useEffect(() => {
     const update = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
@@ -35,6 +37,16 @@ export default function WelcomePage({ onEnter }: Props) {
   }, []);
 
   useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
+
+  // Measure the book back-cover position when the cover starts flipping.
+  // This lets the curtain expand to exactly the book-interior rect so the
+  // app appears to sit inside the open book before zooming to full screen.
+  useEffect(() => {
+    if (phase === "opening" && backCoverRef.current) {
+      const r = backCoverRef.current.getBoundingClientRect();
+      setCurtainRect({ left: r.left, top: r.top, width: r.width, height: r.height });
+    }
+  }, [phase]);
 
   const finish = useCallback(() => {
     if (calledRef.current) return;
@@ -59,18 +71,41 @@ export default function WelcomePage({ onEnter }: Props) {
   // "revealing" is no longer triggered on button tap — hero never re-expands after Phase 1
   const isReveal = phase === "revealing";
 
+  // Curtain animate target — controls the transparent "hole" in the dark overlay.
+  // box-shadow: 0 0 0 9999px #0E0804 creates darkness AROUND this transparent div.
+  //   0×0 at origin  → whole screen dark (app hidden behind solid dark)
+  //   = book rect    → app visible only inside the book interior
+  //   = full screen  → app fully visible (zoom-out complete)
+  const curtainTarget =
+    phase === "exiting"
+      ? { left: 0, top: 0, width: vw, height: vh, borderRadius: 0 }
+      : curtainRect
+        ? { left: curtainRect.left, top: curtainRect.top, width: curtainRect.width, height: curtainRect.height, borderRadius: 8 }
+        : { left: 0, top: 0, width: 0, height: 0, borderRadius: 0 };
+
   return (
-    <motion.div
-      animate={{ opacity: phase === "exiting" ? 0 : 1 }}
-      transition={{ duration: 0.55, ease: "easeIn" }}
+    <div
       style={{
         position: "fixed", inset: 0, zIndex: 200,
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         overflow: "hidden",
-        background: "#0E0804",
+        // No background here — the curtain div below provides the dark overlay
       }}
     >
+      {/* ── Curtain — transparent hole punched in a 9999px box-shadow ──────── */}
+      <motion.div
+        initial={{ left: 0, top: 0, width: 0, height: 0, borderRadius: 0 }}
+        animate={curtainTarget}
+        transition={{ duration: phase === "exiting" ? 0.65 : 0.75, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          position: "absolute",
+          background: "transparent",
+          boxShadow: "0 0 0 9999px #0E0804",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}
+      />
       {/* ── Full-screen hero — expands during revealing ───────────────────── */}
       <motion.img
         src="/welcome-hero.png"
@@ -157,10 +192,10 @@ export default function WelcomePage({ onEnter }: Props) {
         )}
       </AnimatePresence>
 
-      {/* ── Book + title + button (fades out when hero takes over) ─────────── */}
+      {/* ── Book + title + button (fades out when hero takes over or on exit) ── */}
       <motion.div
-        animate={{ opacity: isReveal ? 0 : 1, y: isReveal ? -12 : 0 }}
-        transition={{ duration: 0.25 }}
+        animate={{ opacity: (isReveal || phase === "exiting") ? 0 : 1, y: isReveal ? -12 : 0 }}
+        transition={{ duration: phase === "exiting" ? 0.35 : 0.25 }}
         style={{
           position: "relative", zIndex: 4,
           display: "flex", flexDirection: "column", alignItems: "center",
@@ -171,10 +206,10 @@ export default function WelcomePage({ onEnter }: Props) {
         <div style={{ width: SW, height: SH, position: "relative", perspective: SW * 3.2 }}>
 
           {/* Back cover + page edges (always visible behind the front cover) */}
-          <div style={{
+          <div ref={backCoverRef} style={{
             position: "absolute", inset: 0,
             borderRadius: "4px 10px 10px 4px",
-            background: "#2E1508",
+            background: "transparent",
             boxShadow: `6px 8px 32px rgba(0,0,0,0.75), inset -2px 0 0 rgba(0,0,0,0.3)`,
           }}>
             {/* Stacked page edges on right */}
@@ -364,6 +399,6 @@ export default function WelcomePage({ onEnter }: Props) {
           style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.25)", textDecoration: "none", letterSpacing: "0.02em" }}
         >Support</a>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Route, Switch, Redirect, Router as WouterRouter } from 'wouter';
 import { useState, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { AppLayout } from './components/layout/AppLayout';
 import WardrobePage from './pages/wardrobe';
 import GeneratePage from './pages/generate';
@@ -74,37 +73,32 @@ function Router() {
 }
 
 // ── App shell ─────────────────────────────────────────────────────────────────
-// The app is pre-rendered behind the welcome overlay so that when onEnter fires
-// (the moment the overlay starts fading) the Router can zoom in simultaneously.
-// `appVisible`  — controls whether the Router is mounted at all
-// `showOverlay` — controls whether the WelcomePage overlay stays in the DOM
+// The Router is always rendered at full-screen behind the welcome overlay.
+// The overlay uses a "box-shadow curtain" to control what the user sees:
+//   - curtain 0×0   → whole screen dark (app hidden)
+//   - curtain = book interior rect → app visible only inside the book
+//   - curtain = full screen → whole app visible (overlay then unmounts)
+// No animation is needed on the Router itself; the curtain handles the reveal.
 function AppShell() {
-  const alreadyEntered              = useRef(hasEntered()).current;
-  const [appVisible,  setAppVisible]  = useState(alreadyEntered);
+  const alreadyEntered            = useRef(hasEntered()).current;
   const [showOverlay, setShowOverlay] = useState(!alreadyEntered);
-  const overlayTimer                  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const overlayTimer              = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Called when the overlay's exiting animation starts (750 ms after tap).
+  // The curtain expansion takes ~650 ms, so we wait 800 ms before unmounting.
   const handleEnter = useCallback(() => {
     markEntered();
-    setAppVisible(true);                          // mount Router → zoom animation starts
-    overlayTimer.current = setTimeout(() => setShowOverlay(false), 700); // remove after fade
+    overlayTimer.current = setTimeout(() => setShowOverlay(false), 800);
   }, []);
 
   return (
     <WouterRouter base={getRouterBase()}>
-      {/* App — always behind the overlay; zooms in when it mounts during transition */}
-      {appVisible && (
-        <motion.div
-          initial={alreadyEntered ? false : { scale: 0.72, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          style={{ position: "fixed", inset: 0 }}
-        >
-          <Router />
-        </motion.div>
-      )}
+      {/* App — always rendered full-screen; welcome overlay sits above it */}
+      <div style={{ position: "fixed", inset: 0 }}>
+        <Router />
+      </div>
 
-      {/* Welcome overlay — stays until its own fade animation finishes */}
+      {/* Welcome overlay — curtain reveals the app progressively */}
       {showOverlay && <WelcomePage onEnter={handleEnter} />}
     </WouterRouter>
   );
