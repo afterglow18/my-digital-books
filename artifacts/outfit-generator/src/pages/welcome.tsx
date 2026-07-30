@@ -56,7 +56,8 @@ export default function WelcomePage({ onEnter }: Props) {
   const SH  = SW  * 1.38;                 // book height
 
   const isOpen   = phase !== "idle" && phase !== "hero";
-  const isReveal = phase === "revealing" || phase === "exiting";
+  // "revealing" is no longer triggered on button tap — hero never re-expands after Phase 1
+  const isReveal = phase === "revealing";
 
   return (
     <motion.div

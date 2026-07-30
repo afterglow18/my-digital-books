@@ -135,6 +135,7 @@ export default function WardrobePage() {
   const [editDraft,  setEditDraft]  = useState("");
 
   const updateItem       = useUpdateClothingItem();
+  const queryClient      = useQueryClient();
   const prevDatesRef     = useRef<Map<number, string | null>>(new Map());
 
   const todayStr = () => {
@@ -174,7 +175,6 @@ export default function WardrobePage() {
   const totalItems = outfitsItems.length + beautyItems.length + toiletriesItems.length + essentialsItems.length;
 
 
-  const queryClient = useQueryClient();
   const { tier, canAddItem } = useEntitlements();
 
   useEffect(() => {
