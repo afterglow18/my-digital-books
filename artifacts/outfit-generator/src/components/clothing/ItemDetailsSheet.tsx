@@ -376,7 +376,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                          bg-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
                          active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
             >
-              📖 Reading This Today
+              📖 Read Today
             </button>
           ) : (
             <button
