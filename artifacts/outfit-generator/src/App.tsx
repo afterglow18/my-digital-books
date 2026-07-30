@@ -21,6 +21,23 @@ try {
   console.warn("[RevenueCat] Init error (non-fatal):", err);
 }
 
+// ── Router base — use root when running inside Capacitor native shell ─────────
+// In Capacitor the WebView loads from capacitor://localhost/ (or file://), so
+// the /outfit-generator prefix that the Replit dev proxy injects doesn't exist.
+// Wouter would find no matching routes and show a blank page without this guard.
+function getRouterBase(): string {
+  try {
+    const proto = window.location.protocol;
+    const isNative =
+      proto === "capacitor:" ||
+      proto === "file:" ||
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).Capacitor?.isNativePlatform?.() === true;
+    if (isNative) return "";
+  } catch { /* SSR / test */ }
+  return import.meta.env.BASE_URL.replace(/\/$/, "");
+}
+
 // ── First-launch welcome ──────────────────────────────────────────────────────
 const ENTERED_KEY = "suitcase-entered";
 
@@ -65,7 +82,7 @@ function AppShell() {
   }, []);
 
   return (
-    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+    <WouterRouter base={getRouterBase()}>
       {entered ? (
         <Router />
       ) : (
