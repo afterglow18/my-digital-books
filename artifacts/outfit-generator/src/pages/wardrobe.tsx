@@ -131,8 +131,6 @@ export default function WardrobePage() {
   const [saveSuccess,   setSaveSuccess]   = useState(false);
 
   const { names, setName } = useCategoryNames();
-  const [editingKey, setEditingKey] = useState<CategoryKey | null>(null);
-  const [editDraft,  setEditDraft]  = useState("");
 
   const updateItem       = useUpdateClothingItem();
   const queryClient      = useQueryClient();
@@ -246,7 +244,7 @@ export default function WardrobePage() {
           {/* ── Page title ── */}
           <div style={{
             position: "absolute",
-            top: pY(ir, 0.022),
+            top: `max(${pY(ir, 0.022)}px, calc(env(safe-area-inset-top) + 4px))`,
             left: 8,
             right: 8,
             zIndex: 25,
@@ -321,8 +319,8 @@ export default function WardrobePage() {
 
                 {/* ── Category label ── */}
                 <button
-                  onClick={rowIdx === 0 ? addHandlers[key] : () => { setEditingKey(key as CategoryKey); setEditDraft(names[key] ?? ""); }}
-                  aria-label={rowIdx === 0 ? btnLabel : `Rename ${names[key] ?? key}`}
+                  onClick={addHandlers[key]}
+                  aria-label={btnLabel}
                   style={{
                     position: "absolute",
                     top: labelY,
@@ -349,11 +347,8 @@ export default function WardrobePage() {
                     fontFamily: "var(--font-display)",
                     textTransform: "uppercase",
                   }}>
-                    {rowIdx === 0 ? btnLabel : (names[key] ?? key).toUpperCase()}
+                    {btnLabel}
                   </span>
-                  {rowIdx !== 0 && (
-                    <span style={{ fontSize: Math.max(7, pH(ir, 0.010)), opacity: 0.5, color: "#F5EDD8" }}>✎</span>
-                  )}
                 </button>
 
                 {/* ── Item carousel — fills the section between buttons ── */}
@@ -545,93 +540,6 @@ export default function WardrobePage() {
         )}
       </AnimatePresence>
 
-      {/* ── Rename row modal ── */}
-      <AnimatePresence>
-        {editingKey && (
-          <motion.div
-            key="rename-modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "absolute", inset: 0, zIndex: 90,
-              background: "rgba(0,0,0,0.50)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "0 24px",
-            }}
-            onClick={(e) => { if (e.target === e.currentTarget) setEditingKey(null); }}
-          >
-            <motion.div
-              initial={{ scale: 0.92, y: 12 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.92, y: 12 }}
-              style={{
-                background: "#fff", borderRadius: 20,
-                border: "2.5px solid #000",
-                boxShadow: "4px 4px 0 #000",
-                padding: "24px 20px 20px",
-                width: "100%", maxWidth: 340,
-              }}
-            >
-              <p style={{ fontWeight: 800, fontSize: 15, fontFamily: "var(--font-display)", marginBottom: 4 }}>
-                Rename row
-              </p>
-              <p style={{ fontSize: 12, color: "rgba(0,0,0,0.45)", marginBottom: 14, fontFamily: "var(--font-display)" }}>
-                This name appears everywhere in the app.
-              </p>
-              <input
-                autoFocus
-                value={editDraft}
-                onChange={e => setEditDraft(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === "Enter" && editDraft.trim() && editingKey) {
-                    setName(editingKey, editDraft.trim());
-                    setEditingKey(null);
-                  }
-                  if (e.key === "Escape") setEditingKey(null);
-                }}
-                placeholder="e.g. Fiction, Favourites…"
-                maxLength={24}
-                style={{
-                  width: "100%", height: 42, borderRadius: 10,
-                  border: "2px solid #000", padding: "0 12px",
-                  fontSize: 14, fontFamily: "var(--font-display)",
-                  boxSizing: "border-box" as const, marginBottom: 12, outline: "none",
-                }}
-              />
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() => setEditingKey(null)}
-                  style={{
-                    flex: 1, height: 40, borderRadius: 20,
-                    border: "2px solid #000", background: "#fff",
-                    fontWeight: 700, fontSize: 13, cursor: "pointer",
-                    fontFamily: "var(--font-display)",
-                  }}
-                >Cancel</button>
-                <button
-                  onClick={() => {
-                    if (editDraft.trim() && editingKey) {
-                      setName(editingKey, editDraft.trim());
-                      setEditingKey(null);
-                    }
-                  }}
-                  disabled={!editDraft.trim()}
-                  style={{
-                    flex: 1, height: 40, borderRadius: 20,
-                    border: "2px solid #C4A07A",
-                    background: "linear-gradient(to bottom, #E8D4B0, #C4A07A)",
-                    color: "#0D1B38", fontWeight: 800, fontSize: 13,
-                    cursor: editDraft.trim() ? "pointer" : "default",
-                    opacity: editDraft.trim() ? 1 : 0.45,
-                    fontFamily: "var(--font-display)",
-                  }}
-                >Save ♡</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Modals ── */}
       <AnimatePresence>
