@@ -361,8 +361,9 @@ export default function WardrobePage() {
                       left:   carLeft,
                       width:  carW,
                       height: secH,
-                      zIndex: 30,   // above ADD button (22) and label (23) so card taps fire correctly
+                      zIndex: 30,
                       overflow: "visible",
+                      pointerEvents: "none", // container is transparent; ClosetRow restores auto so cards still work
                     }}
                   >
                     <ClosetRow

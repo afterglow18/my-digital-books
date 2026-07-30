@@ -240,6 +240,7 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
           touchAction: "pan-y",
           userSelect: "none",
           cursor: items.length > 1 ? "ew-resize" : "default",
+          pointerEvents: "auto", // re-enable after parent carousel container sets none
         }}
       >
         {/* Strip — all (visible-range) items side by side */}
