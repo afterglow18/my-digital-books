@@ -15,6 +15,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { blobToDataUrl } from "@/lib/backgroundRemoval";
 import { useCategoryNames, type CategoryKey } from "@/hooks/useCategoryNames";
+import { Capacitor } from "@capacitor/core";
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -187,6 +189,32 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
     else handleFile(files[0]);
   };
 
+  // ── Capacitor camera (native iOS/Android only) ────────────────────────────
+  // CameraSource.Prompt shows the native "Take Photo / Photo Library" action
+  // sheet — safer than CameraSource.Camera which forces direct GPU allocation
+  // in WKWebView and causes a hard crash.
+
+  const handleCapacitorPhoto = useCallback(async (source: CameraSource) => {
+    try {
+      const photo = await Camera.getPhoto({
+        source,
+        resultType: CameraResultType.DataUrl,
+        quality: 90,
+        allowEditing: false,
+        correctOrientation: true,
+      });
+      if (!photo.dataUrl) return;
+      const res  = await fetch(photo.dataUrl);
+      const blob = await res.blob();
+      await handleFile(blob);
+    } catch (err: unknown) {
+      // User cancelled — Camera throws a string "User cancelled photos app"
+      if (typeof err === "string" && err.toLowerCase().includes("cancel")) return;
+      if (err instanceof Error && err.message.toLowerCase().includes("cancel")) return;
+      setErrorMsg(`Camera error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, [handleFile]);
+
   if (!open) return null;
 
   const label = names[category as CategoryKey] ?? category;
@@ -233,7 +261,11 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
             <div className="flex gap-3">
               {/* Take Photo */}
               <button
-                onClick={() => cameraInputRef.current?.click()}
+                onClick={() =>
+                  Capacitor.isNativePlatform()
+                    ? handleCapacitorPhoto(CameraSource.Prompt)
+                    : cameraInputRef.current?.click()
+                }
                 className="flex-1 flex flex-col items-center justify-center gap-3 py-8
                            border-4 border-black rounded-2xl bg-primary
                            shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]
@@ -248,7 +280,11 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
 
               {/* Upload Photo */}
               <button
-                onClick={() => galleryInputRef.current?.click()}
+                onClick={() =>
+                  Capacitor.isNativePlatform()
+                    ? handleCapacitorPhoto(CameraSource.Photos)
+                    : galleryInputRef.current?.click()
+                }
                 className="flex-1 flex flex-col items-center justify-center gap-3 py-8
                            border-4 border-black rounded-2xl bg-white
                            shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]
