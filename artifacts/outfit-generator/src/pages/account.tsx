@@ -189,8 +189,8 @@ export default function AccountPage() {
             className="mb-4 px-4 py-3 rounded-xl text-sm font-medium flex items-start gap-2"
             style={{
               border: `2px solid ${NAVY}`,
-              background: msg.type === "success" ? "#EAF4E8" : "#FFF3E0",
-              color: msg.type === "success" ? "#1A4A1A" : "#7A3A00",
+              background: msg.type === "success" ? "#E8EEF8" : "#FFF3E0",
+              color: msg.type === "success" ? "#0D1B38" : "#7A3A00",
             }}
           >
             {msg.type === "success"
@@ -223,7 +223,7 @@ export default function AccountPage() {
           {isSubscribed ? (
             <div
               className="flex items-center gap-2 text-sm font-semibold rounded-lg px-3 py-2"
-              style={{ background: "#EAF4E8", color: "#1A4A1A", border: "1px solid #A8D4A0" }}
+              style={{ background: "#E8EEF8", color: "#0D1B38", border: "1px solid #8FA8D4" }}
             >
               <Check className="w-4 h-4 shrink-0" />
               Pro active — unlimited everything
