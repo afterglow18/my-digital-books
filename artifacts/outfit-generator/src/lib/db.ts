@@ -26,6 +26,7 @@ export interface StoredClothingItem {
   imageObjectPath: string | null; // JPEG data URL  (e.g. "data:image/jpeg;base64,...")
   isFavorite:     boolean;
   timesWorn:      number;
+  lastReadDate?:  string | null; // "YYYY-MM-DD" local date, null if never read
   color?:         string | null;
   brand?:         string | null;
   size?:          string | null;

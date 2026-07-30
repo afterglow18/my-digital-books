@@ -23,6 +23,16 @@ import { useCategoryNames, type CategoryKey } from "@/hooks/useCategoryNames";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function fmtDate(s: string): string {
+  const [y, m, d] = s.split("-");
+  return `${parseInt(m)}/${parseInt(d)}/${y.slice(2)}`;
+}
+
 const SEASON_OPTIONS    = ["", "Spring", "Summer", "Fall", "Winter", "All Season"];
 const OCCASION_OPTIONS  = ["", "Casual", "Work", "Formal", "Sport", "Special Event"];
 // CATEGORY_OPTIONS built dynamically from useCategoryNames inside the component
@@ -159,13 +169,31 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
   // Optimistic display: set immediately on save, overrides item.imageObjectPath until next load
   const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(null);
 
+  // ── Reading tracking (books category only) ────────────────────────────────
+  const [timesRead,       setTimesRead]       = useState(0);
+  const [timesReadInput,  setTimesReadInput]  = useState("0");
+  const [lastReadDate,    setLastReadDate]    = useState<string | null>(null);
+  const [prevLastReadDate, setPrevLastReadDate] = useState<string | null>(null);
+
   const updateItem  = useUpdateClothingItem();
   const deleteItem  = useDeleteClothingItem();
   const queryClient = useQueryClient();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getWardrobeStatsQueryKey() });
+  };
+
   // Reset form whenever item changes
   useEffect(() => {
-    if (item) setForm(toForm(item));
+    if (item) {
+      setForm(toForm(item));
+      setTimesRead(item.timesWorn ?? 0);
+      setTimesReadInput(String(item.timesWorn ?? 0));
+      setLastReadDate((item as any).lastReadDate ?? null);
+      setPrevLastReadDate(null);
+    }
     setShowDeleteConfirm(false);
     setDisplayImageUrl(null);
   }, [item?.id]);
@@ -214,14 +242,54 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
       { id: item.id },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getWardrobeStatsQueryKey() });
+          invalidateAll();
           onDeleted?.();
           onClose();
         },
       }
     );
+  };
+
+  // ── Reading tracking handlers ─────────────────────────────────────────────
+  const isBooks   = item.category === "outfits";
+  const today     = todayStr();
+  const loggedToday = lastReadDate === today;
+
+  const handleLogRead = () => {
+    const next = timesRead + 1;
+    setPrevLastReadDate(lastReadDate);
+    setTimesRead(next);
+    setTimesReadInput(String(next));
+    setLastReadDate(today);
+    updateItem.mutate(
+      { id: item.id, data: { timesWorn: next, lastReadDate: today } as any },
+      { onSuccess: invalidateAll },
+    );
+  };
+
+  const handleUndoRead = () => {
+    const next = Math.max(0, timesRead - 1);
+    setTimesRead(next);
+    setTimesReadInput(String(next));
+    setLastReadDate(prevLastReadDate);
+    setPrevLastReadDate(null);
+    updateItem.mutate(
+      { id: item.id, data: { timesWorn: next, lastReadDate: prevLastReadDate } as any },
+      { onSuccess: invalidateAll },
+    );
+  };
+
+  const handleTimesReadBlur = () => {
+    const n = parseInt(timesReadInput, 10);
+    if (!isNaN(n) && n >= 0 && n !== timesRead) {
+      setTimesRead(n);
+      updateItem.mutate(
+        { id: item.id, data: { timesWorn: n } },
+        { onSuccess: invalidateAll },
+      );
+    } else {
+      setTimesReadInput(String(timesRead)); // revert invalid input
+    }
   };
 
   return (
@@ -296,6 +364,36 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
         </div>
       )}
 
+      {/* ── Reading This Today button (books only) ── */}
+      {isBooks && (
+        <div className="flex-shrink-0 px-4 pt-4 pb-1">
+          {!loggedToday ? (
+            <button
+              onClick={handleLogRead}
+              className="w-full py-3 rounded-xl flex items-center justify-center gap-2
+                         font-display font-bold text-sm uppercase tracking-wide
+                         border-2 border-primary text-primary-foreground
+                         bg-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                         active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
+            >
+              📖 Reading This Today
+            </button>
+          ) : (
+            <button
+              onClick={handleUndoRead}
+              className="w-full py-3 rounded-xl flex items-center justify-center gap-2
+                         font-display font-bold text-sm uppercase tracking-wide
+                         border-2 border-black/20 text-black/50 bg-white
+                         shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]
+                         active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
+            >
+              <Check className="w-4 h-4 text-green-600" />
+              Logged ✓ · Undo
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── Form ── */}
       <div className="flex-1 px-4 py-5 flex flex-col gap-4">
 
@@ -357,12 +455,35 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
               { value: "essentials", label: names["essentials"] ?? "Bookmarks" },
             ]}
           />
-          <div className="flex flex-col gap-1 opacity-50 pointer-events-none">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">Times Worn</span>
-            <div className="border-2 border-black/20 rounded-lg px-3 py-2 text-sm font-medium bg-white/50">
-              {item.timesWorn ?? 0}
+          {isBooks ? (
+            /* ── Times Read (editable) + Last read label ── */
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                Times Read
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={timesReadInput}
+                onChange={e => setTimesReadInput(e.target.value)}
+                onBlur={handleTimesReadBlur}
+                className="w-full border-2 border-black rounded-lg px-3 py-2 text-sm font-medium
+                           bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              {lastReadDate && (
+                <span className="text-[10px] text-black/40 font-medium mt-0.5">
+                  Last read: {fmtDate(lastReadDate)}
+                </span>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col gap-1 opacity-50 pointer-events-none">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">Times Worn</span>
+              <div className="border-2 border-black/20 rounded-lg px-3 py-2 text-sm font-medium bg-white/50">
+                {item.timesWorn ?? 0}
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

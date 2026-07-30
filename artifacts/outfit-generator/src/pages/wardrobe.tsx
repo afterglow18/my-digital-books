@@ -25,7 +25,8 @@ import { useLocation } from "wouter";
 import {
   useListClothing, getListClothingQueryKey,
   useListOutfits, getListOutfitsQueryKey,
-  useSaveOutfit,
+  useSaveOutfit, useUpdateClothingItem,
+  getWardrobeStatsQueryKey,
   type ClothingItem,
 } from "@/hooks/useLocalDB";
 import { useLayoutContext } from "@/components/layout/AppLayout";
@@ -132,6 +133,35 @@ export default function WardrobePage() {
   const { names, setName } = useCategoryNames();
   const [editingKey, setEditingKey] = useState<CategoryKey | null>(null);
   const [editDraft,  setEditDraft]  = useState("");
+
+  const updateItem       = useUpdateClothingItem();
+  const prevDatesRef     = useRef<Map<number, string | null>>(new Map());
+
+  const todayStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  };
+
+  const handleBookLogRead = useCallback((item: ClothingItem) => {
+    const today = todayStr();
+    const lastRead = (item as any).lastReadDate as string | null | undefined;
+    if (lastRead === today) {
+      // Undo — restore previous date
+      const prev = prevDatesRef.current.get(item.id) ?? null;
+      prevDatesRef.current.delete(item.id);
+      updateItem.mutate(
+        { id: item.id, data: { timesWorn: Math.max(0, (item.timesWorn ?? 0) - 1), lastReadDate: prev } as any },
+        { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() }) },
+      );
+    } else {
+      // Log today
+      prevDatesRef.current.set(item.id, lastRead ?? null);
+      updateItem.mutate(
+        { id: item.id, data: { timesWorn: (item.timesWorn ?? 0) + 1, lastReadDate: today } as any },
+        { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() }) },
+      );
+    }
+  }, [updateItem, queryClient]);
   const saveOutfit = useSaveOutfit();
 
   const { data: outfitsItems  = [] } = useListClothing({ category: "outfits"    }, { query: { queryKey: getListClothingQueryKey({ category: "outfits"    }) } });
@@ -373,6 +403,7 @@ export default function WardrobePage() {
                       onCenteredItem={setCentredHandlers[key]}
                       onItemTap={handleItemTap}
                       maxPhotoH={uniformPhotoH}
+                      onLogRead={rowIdx === 0 ? handleBookLogRead : undefined}
                     />
                   </div>
                 )}
