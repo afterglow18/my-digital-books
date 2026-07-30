@@ -45,10 +45,10 @@ export default function WelcomePage({ onEnter }: Props) {
   const handleOpen = () => {
     if (phase !== "idle") return;
     setPhase("opening");
-    // Skip "revealing" (hero re-expand) — go straight from cover flip → fade out → app
-    const t1 = setTimeout(() => setPhase("exiting"), 750);
-    const t2 = setTimeout(finish,                    1300);
-    timers.current = [t1, t2];
+    // At 750 ms the cover flip is done — start fading the overlay AND signal the
+    // app to mount+zoom in simultaneously, so both animations run in sync.
+    const t1 = setTimeout(() => { setPhase("exiting"); finish(); }, 750);
+    timers.current = [t1];
   };
 
   // ── Book dimensions ──────────────────────────────────────────────────────
@@ -184,22 +184,7 @@ export default function WelcomePage({ onEnter }: Props) {
               background: "repeating-linear-gradient(to bottom, #F0E4C8, #D4C4A0 1.5px, #F0E4C8 1.5px, #F0E4C8 4px)",
             }} />
 
-            {/* Hero image inside the book — revealed as cover flips */}
-            <motion.img
-              src="/welcome-hero.png"
-              alt=""
-              draggable={false}
-              animate={{ opacity: isOpen && !isReveal ? 1 : 0 }}
-              transition={{ duration: 0.35, delay: isOpen ? 0.30 : 0 }}
-              style={{
-                position: "absolute",
-                left: SW * 0.045, right: SW * 0.06,
-                top: SH * 0.015, bottom: SH * 0.015,
-                objectFit: "cover",
-                borderRadius: 3,
-                pointerEvents: "none",
-              }}
-            />
+            {/* Book interior — dark pages, no image; app zooms in behind the overlay */}
           </div>
 
           {/* Front cover — 3-D flip on Y axis around spine (left edge) */}
