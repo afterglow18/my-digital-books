@@ -366,7 +366,7 @@ export default function WardrobePage() {
                       left:   carLeft,
                       width:  carW,
                       height: secH,
-                      zIndex: 10,
+                      zIndex: 30,   // above ADD button (22) and label (23) so card taps fire correctly
                       overflow: "visible",
                     }}
                   >
