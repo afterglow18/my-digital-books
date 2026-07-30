@@ -323,12 +323,12 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
       </div>
 
       {/* Hidden file inputs */}
-      {/* Camera — opens native camera on mobile */}
+      {/* Camera — shows native photo picker (camera + library); capture="environment"
+          omitted intentionally: forcing the camera directly crashes WKWebView on iOS */}
       <input
         ref={cameraInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         className="hidden"
         onChange={handleInputChange}
       />
