@@ -1,20 +1,21 @@
 /**
- * WelcomePage — Closed-book splash with opening animation.
+ * WelcomePage — Three-phase splash shown once per cold launch.
  *
- * Phases:
- *  idle      → leather book, title + "Open Books" button
- *  opening   → cover flips back (0.75 s), interior hero fades in
- *  revealing → full-screen hero scales up from book (0.55 s)
- *  exiting   → screen fades out (0.55 s) → onEnter()
+ * Phase 1 (hero):     Full-screen hero image + branding, auto-advances after 2.5 s
+ * Phase 2 (idle):     Leather book animation + branding + "Open Books" button
+ * Phase 3 (tap):      Cover flips → hero expands → screen fades → onEnter()
+ *   opening   → cover flips back (0.75 s)
+ *   revealing → full-screen hero scales up from book (0.55 s)
+ *   exiting   → screen fades out (0.55 s) → onEnter()
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props { onEnter: () => void; }
 
 export default function WelcomePage({ onEnter }: Props) {
-  const [phase, setPhase] = useState<"idle" | "opening" | "revealing" | "exiting">("idle");
+  const [phase, setPhase] = useState<"hero" | "idle" | "opening" | "revealing" | "exiting">("hero");
   const [vw, setVw] = useState(375);
   const [vh, setVh] = useState(700);
   const calledRef = useRef(false);
@@ -25,6 +26,12 @@ export default function WelcomePage({ onEnter }: Props) {
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
+  }, []);
+
+  // Phase 1 auto-advance: hero → idle after 2.5 s
+  useEffect(() => {
+    const t = setTimeout(() => setPhase("idle"), 2500);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
@@ -48,7 +55,7 @@ export default function WelcomePage({ onEnter }: Props) {
   const SW  = Math.min(vw * 0.62, 250);   // book width
   const SH  = SW  * 1.38;                 // book height
 
-  const isOpen   = phase !== "idle";
+  const isOpen   = phase !== "idle" && phase !== "hero";
   const isReveal = phase === "revealing" || phase === "exiting";
 
   return (
@@ -81,6 +88,73 @@ export default function WelcomePage({ onEnter }: Props) {
           userSelect: "none",
         }}
       />
+
+      {/* ── Phase 1 hero overlay — shown for 2.5 s then fades out ─────────── */}
+      <AnimatePresence>
+        {phase === "hero" && (
+          <motion.div
+            key="hero-phase"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: "easeIn" }}
+            style={{
+              position: "absolute", inset: 0, zIndex: 16,
+              overflow: "hidden",
+            }}
+          >
+            {/* Full-cover hero image */}
+            <img
+              src="/welcome-hero.png"
+              alt=""
+              draggable={false}
+              style={{
+                width: "100%", height: "100%",
+                objectFit: "cover", objectPosition: "center top",
+                display: "block", userSelect: "none",
+              }}
+            />
+            {/* Dark gradient for readability */}
+            <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0,
+              height: "52%",
+              background: "linear-gradient(to bottom, transparent, rgba(8,4,1,0.92))",
+              pointerEvents: "none",
+            }} />
+            {/* Branding text */}
+            <div style={{
+              position: "absolute",
+              bottom: `calc(env(safe-area-inset-bottom, 0px) + ${Math.round(vh * 0.11)}px)`,
+              left: 0, right: 0,
+              textAlign: "center",
+              padding: "0 28px",
+              pointerEvents: "none",
+            }}>
+              <div style={{
+                fontSize: 11, fontWeight: 600,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "rgba(232,212,176,0.60)",
+                marginBottom: 7,
+                fontFamily: "var(--font-display, sans-serif)",
+              }}>
+                Welcome to
+              </div>
+              <div style={{
+                fontFamily: "var(--font-display, serif)",
+                fontWeight: 900,
+                fontSize: `clamp(26px, ${Math.round(vw * 0.095)}px, 42px)`,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                lineHeight: 1.08,
+                color: "#E8D4B0",
+                textShadow: "0 2px 18px rgba(0,0,0,0.65)",
+              }}>
+                MY DIGITAL<br />BOOKS
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Book + title + button (fades out when hero takes over) ─────────── */}
       <motion.div
@@ -235,25 +309,25 @@ export default function WelcomePage({ onEnter }: Props) {
         {/* Title */}
         <div style={{ marginTop: vh * 0.038, textAlign: "center" }}>
           <div style={{
+            fontSize: 11, fontWeight: 600,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase" as const,
+            color: "rgba(232,212,176,0.60)",
+            marginBottom: 5,
+            fontFamily: "var(--font-display, sans-serif)",
+          }}>
+            Welcome to
+          </div>
+          <div style={{
             fontFamily: "var(--font-display, serif)",
             fontWeight: 900,
             fontSize: `clamp(24px, ${SW * 0.145}px, 44px)`,
             letterSpacing: "0.08em",
             textTransform: "uppercase" as const,
-            lineHeight: 1.1,
+            lineHeight: 1.08,
             color: "#E8D4B0",
           }}>
             MY DIGITAL<br />BOOKS
-          </div>
-          <div style={{
-            marginTop: 8,
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: "0.25em",
-            textTransform: "uppercase" as const,
-            color: "rgba(232,212,176,0.40)",
-          }}>
-            your book collection
           </div>
         </div>
 
@@ -289,7 +363,9 @@ export default function WelcomePage({ onEnter }: Props) {
         left: 0, right: 0,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
         zIndex: 210,
-        pointerEvents: isReveal ? "none" : "auto",
+        pointerEvents: (isReveal || phase === "hero") ? "none" : "auto",
+        opacity: phase === "hero" ? 0 : 1,
+        transition: "opacity 0.4s ease",
       }}>
         <a
           href="https://classy-alpaca-441.notion.site/Privacy-Policy-39682db6065380b19dedcb108d4a0ef4"
