@@ -45,10 +45,10 @@ export default function WelcomePage({ onEnter }: Props) {
   const handleOpen = () => {
     if (phase !== "idle") return;
     setPhase("opening");
-    const t1 = setTimeout(() => setPhase("revealing"), 750);
-    const t2 = setTimeout(() => setPhase("exiting"),   1350);
-    const t3 = setTimeout(finish,                       1900);
-    timers.current = [t1, t2, t3];
+    // Skip "revealing" (hero re-expand) — go straight from cover flip → fade out → app
+    const t1 = setTimeout(() => setPhase("exiting"), 750);
+    const t2 = setTimeout(finish,                    1300);
+    timers.current = [t1, t2];
   };
 
   // ── Book dimensions ──────────────────────────────────────────────────────
