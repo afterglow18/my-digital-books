@@ -327,7 +327,7 @@ export default function WardrobePage() {
                     left: carLeft,
                     width: carW,
                     transform: "translateY(-50%)",
-                    zIndex: 23,
+                    zIndex: 35,
                     textAlign: "center",
                     background: "none",
                     border: "none",
