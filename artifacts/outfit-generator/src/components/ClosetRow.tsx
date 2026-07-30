@@ -37,11 +37,6 @@ const SHADOW_CTR  = "0 4px 18px rgba(0,0,0,0.40), 0 1px 4px rgba(0,0,0,0.20)";
 import { type ClothingItem } from "@/hooks/useLocalDB";
 import { getImageUrl } from "@/lib/utils";
 
-function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
-
 // ── Types ─────────────────────────────────────────────────────────────────────
 export interface ClosetRowHandle {
   scrollToIndex: (index: number, smooth?: boolean) => void;
@@ -57,14 +52,11 @@ interface ClosetRowProps {
   maxPhotoH?: number;
   /** When true, swipe gestures are disabled (used on Generate page). */
   disableSwipe?: boolean;
-  /** When provided, renders a "Reading This Today / ✓ Logged" badge below each photo. */
-  onLogRead?: (item: ClothingItem) => void;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
-  ({ items, onCenteredItem, onItemTap, maxPhotoH, disableSwipe = false, onLogRead }, ref) => {
-    const today = todayStr();
+  ({ items, onCenteredItem, onItemTap, maxPhotoH, disableSwipe = false }, ref) => {
 
     // ── Container measurement ─────────────────────────────────────────────────
     const containerRef = useRef<HTMLDivElement>(null);
@@ -216,11 +208,9 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
     // ── Card base geometry ────────────────────────────────────────────────────
     // Side-item card dimensions (SCALE_SIDE = 1).  Center card is scaled up
     // via CSS transform so layout is unaffected.
-    const GAP       = slotW * 0.06;
-    const photoW    = slotW - GAP;
-    const BADGE_H   = onLogRead ? 26 : 0;
-    const photoH    = Math.min(photoW * 1.5, (maxPhotoH ?? (containerH - 2)) - BADGE_H);
-    const badgeTop  = (containerH - photoH) / 2 + photoH + 3;
+    const GAP    = slotW * 0.06;
+    const photoW = slotW - GAP;
+    const photoH = Math.min(photoW * 1.5, maxPhotoH ?? (containerH - 2));
 
     // CSS transition applied to individual card properties during snap animation.
     // During live drag we compute live values so no card-level transition is needed.
@@ -380,39 +370,6 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
                   )}
                 </div>
 
-                {/* ── Reading Today badge ── */}
-                {onLogRead && (
-                  <div
-                    onClick={e => { e.stopPropagation(); onLogRead(item); }}
-                    style={{
-                      position: "absolute",
-                      top: badgeTop,
-                      left: (slotW - photoW) / 2,
-                      width: photoW,
-                      display: "flex",
-                      justifyContent: "center",
-                      zIndex: 4,
-                      pointerEvents: "auto",
-                    }}
-                  >
-                    <span style={{
-                      background: item.lastReadDate === today
-                        ? "rgba(80,140,80,0.88)"
-                        : "rgba(13,27,56,0.82)",
-                      color: "#C4A07A",
-                      borderRadius: 20,
-                      padding: "2px 9px",
-                      fontSize: Math.max(7, slotW * 0.068),
-                      fontWeight: 800,
-                      letterSpacing: "0.04em",
-                      textTransform: "uppercase",
-                      whiteSpace: "nowrap",
-                      fontFamily: "var(--font-display)",
-                    }}>
-                      {item.lastReadDate === today ? "✓ Logged" : "📖 Today"}
-                    </span>
-                  </div>
-                )}
               </button>
             );
           })}
