@@ -137,12 +137,11 @@ export function UpgradeSheet({ reason, onClose }: Props) {
 
   const ctaLabel =
     status === "pending"        ? "Opening…"
-    : isOfferingsLoading        ? "Loading…"
     : selected === "lifetime"   ? `UNLOCK FOREVER – ${prices.lifetime} ›`
     : selected === "yearly"     ? `SUBSCRIBE – ${prices.yearly}/YR ›`
     :                             `SUBSCRIBE – ${prices.monthly}/MO ›`;
 
-  const ctaDisabled = status === "pending" || isOfferingsLoading;
+  const ctaDisabled = status === "pending";
 
   const handlePurchase = useCallback(async () => {
     if (ctaDisabled) return;

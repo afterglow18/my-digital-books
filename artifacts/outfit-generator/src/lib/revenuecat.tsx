@@ -82,6 +82,17 @@ export function waitForRcReady(): Promise<void> {
   return _rcReadyPromise;
 }
 
+// ── Timeout helper ────────────────────────────────────────────────────────────
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`[RevenueCat] ${label} timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
 // ── Query key ─────────────────────────────────────────────────────────────────
 
 const CUSTOMER_INFO_KEY = ["revenuecat", "customer-info"] as const;
@@ -111,15 +122,16 @@ function useSubscriptionContext() {
       // Wait for Purchases.configure() before calling getOfferings() — without
       // this gate, the query fires on mount before configure() completes and
       // returns null, which locks the UI into "Products could not be loaded".
-      await waitForRcReady();
+      // Both steps are guarded by a timeout so the UI never hangs forever.
+      await withTimeout(waitForRcReady(), 8000, "waitForRcReady");
       const Purchases = await getPurchases();
       if (!Purchases) return null;
-      const result = await Purchases.getOfferings();
+      const result = await withTimeout(Purchases.getOfferings(), 10000, "getOfferings");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (result as any).offerings ?? result ?? null;
     },
     staleTime: 300 * 1000,
-    retry: 2,
+    retry: 1,
     retryDelay: 1500,
   });
 
