@@ -34,6 +34,11 @@ function getApiKey(): string {
   throw new Error("RevenueCat API key not configured");
 }
 
+// ── Init gate — offerings query awaits this before calling getOfferings() ─────
+// Prevents calling getOfferings() before Purchases.configure() has finished,
+// which is the root cause of "Products could not be loaded" on first open.
+let _rcReadyPromise: Promise<void> = Promise.resolve();
+
 // ── Lazy-import Purchases so it doesn't crash in the browser ─────────────────
 
 type PurchasesType = typeof import("@revenuecat/purchases-capacitor").Purchases;
@@ -53,19 +58,28 @@ async function getPurchases(): Promise<PurchasesType | null> {
 
 // ── Initialization ────────────────────────────────────────────────────────────
 
-export async function initializeRevenueCat(): Promise<void> {
-  const Purchases = await getPurchases();
-  if (!Purchases) return;
+export function initializeRevenueCat(): void {
+  _rcReadyPromise = (async () => {
+    const Purchases = await getPurchases();
+    if (!Purchases) return;
 
-  const apiKey = getApiKey();
+    const apiKey = getApiKey();
 
-  try {
-    const { LOG_LEVEL } = await import("@revenuecat/purchases-capacitor");
-    await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
-  } catch { /* non-fatal */ }
+    try {
+      const { LOG_LEVEL } = await import("@revenuecat/purchases-capacitor");
+      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+    } catch { /* non-fatal */ }
 
-  await Purchases.configure({ apiKey });
-  console.log("[RevenueCat] Configured");
+    await Purchases.configure({ apiKey });
+    console.log("[RevenueCat] Configured");
+  })().catch(err => {
+    console.warn("[RevenueCat] Init error (non-fatal):", err);
+  });
+}
+
+/** Awaitable gate — resolves once Purchases.configure() has finished (or is a no-op on web). */
+export function waitForRcReady(): Promise<void> {
+  return _rcReadyPromise;
 }
 
 // ── Query key ─────────────────────────────────────────────────────────────────
@@ -94,6 +108,10 @@ function useSubscriptionContext() {
   const offeringsQuery = useQuery({
     queryKey: ["revenuecat", "offerings"],
     queryFn: async () => {
+      // Wait for Purchases.configure() before calling getOfferings() — without
+      // this gate, the query fires on mount before configure() completes and
+      // returns null, which locks the UI into "Products could not be loaded".
+      await waitForRcReady();
       const Purchases = await getPurchases();
       if (!Purchases) return null;
       const result = await Purchases.getOfferings();
@@ -101,7 +119,8 @@ function useSubscriptionContext() {
       return (result as any).offerings ?? result ?? null;
     },
     staleTime: 300 * 1000,
-    retry: false,
+    retry: 2,
+    retryDelay: 1500,
   });
 
   // ── Foreground + server-push listeners ─────────────────────────────────────
@@ -191,15 +210,18 @@ function useSubscriptionContext() {
     customerInfoQuery.data?.entitlements?.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined;
 
   return {
-    customerInfo:  customerInfoQuery.data ?? null,
-    offerings:     offeringsQuery.data ?? null,
+    customerInfo:       customerInfoQuery.data ?? null,
+    offerings:          offeringsQuery.data ?? null,
     isSubscribed,
-    isLoading:     customerInfoQuery.isLoading || offeringsQuery.isLoading,
-    purchase:      purchaseMutation.mutateAsync,
-    restore:       restoreMutation.mutateAsync,
-    isPurchasing:  purchaseMutation.isPending,
-    isRestoring:   restoreMutation.isPending,
-    purchaseError: purchaseMutation.error as Error | null,
+    isLoading:          customerInfoQuery.isLoading || offeringsQuery.isLoading,
+    isOfferingsLoading: offeringsQuery.isLoading || offeringsQuery.isFetching,
+    offeringsError:     offeringsQuery.isError,
+    refetchOfferings:   offeringsQuery.refetch,
+    purchase:           purchaseMutation.mutateAsync,
+    restore:            restoreMutation.mutateAsync,
+    isPurchasing:       purchaseMutation.isPending,
+    isRestoring:        restoreMutation.isPending,
+    purchaseError:      purchaseMutation.error as Error | null,
   };
 }
 

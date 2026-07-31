@@ -14,9 +14,7 @@ import { BiometricLockProvider } from '@/context/BiometricLockContext';
 
 // ── Initialise RevenueCat once at startup ────────────────────────────────────
 try {
-  initializeRevenueCat().catch((err) =>
-    console.warn("[RevenueCat] Init error (non-fatal):", err)
-  );
+  initializeRevenueCat();
 } catch (err) {
   console.warn("[RevenueCat] Init error (non-fatal):", err);
 }

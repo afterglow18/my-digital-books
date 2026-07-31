@@ -123,7 +123,8 @@ function openUrl(url: string) {
 }
 
 export function UpgradeSheet({ reason, onClose }: Props) {
-  const { offerings, purchase, restore, isRestoring } = useSubscription();
+  const { offerings, purchase, restore, isRestoring,
+          isOfferingsLoading, offeringsError, refetchOfferings } = useSubscription();
   const [selected, setSelected] = useState<TierId>("lifetime");
   const [status,   setStatus]   = useState<"idle" | "pending">("idle");
   const [error,    setError]    = useState<string | null>(null);
@@ -136,12 +137,15 @@ export function UpgradeSheet({ reason, onClose }: Props) {
 
   const ctaLabel =
     status === "pending"        ? "Opening…"
+    : isOfferingsLoading        ? "Loading…"
     : selected === "lifetime"   ? `UNLOCK FOREVER – ${prices.lifetime} ›`
     : selected === "yearly"     ? `SUBSCRIBE – ${prices.yearly}/YR ›`
     :                             `SUBSCRIBE – ${prices.monthly}/MO ›`;
 
+  const ctaDisabled = status === "pending" || isOfferingsLoading;
+
   const handlePurchase = useCallback(async () => {
-    if (status === "pending") return;
+    if (ctaDisabled) return;
     setError(null);
     if (!Capacitor.isNativePlatform()) {
       setError("Purchases are only available in the iOS app.");
@@ -164,7 +168,7 @@ export function UpgradeSheet({ reason, onClose }: Props) {
       console.error("Purchase error:", err);
       setError("Something went wrong. Please try again.");
     }
-  }, [status, offerings, selected, purchase, onClose]);
+  }, [ctaDisabled, offerings, selected, purchase, onClose]);
 
   return (
     <motion.div
@@ -265,6 +269,16 @@ export function UpgradeSheet({ reason, onClose }: Props) {
         className="px-5 pt-2 flex flex-col gap-2 flex-shrink-0"
         style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
       >
+        {/* Offerings failed to load — show retry instead of the error string */}
+        {offeringsError && !isOfferingsLoading && (
+          <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+            <p className="text-xs font-semibold text-amber-700">Couldn't load products.</p>
+            <button
+              onClick={() => refetchOfferings()}
+              className="text-xs font-bold underline text-amber-700 ml-2"
+            >Try again</button>
+          </div>
+        )}
         {error && (
           <p className="text-xs font-semibold text-red-600 text-center px-2 -mb-1">
             {error}
@@ -272,7 +286,7 @@ export function UpgradeSheet({ reason, onClose }: Props) {
         )}
         <button
           onClick={handlePurchase}
-          disabled={status === "pending"}
+          disabled={ctaDisabled}
           className="w-full py-3.5 rounded-2xl font-display font-bold text-lg uppercase
                      tracking-tight border-[3px] transition-all
                      active:translate-x-0.5 active:translate-y-0.5
@@ -281,7 +295,7 @@ export function UpgradeSheet({ reason, onClose }: Props) {
             background:  TAN,
             borderColor: TAN_DK,
             color:       NAVY,
-            boxShadow:   status === "pending" ? "none" : `4px 4px 0px 0px ${TAN_DK}`,
+            boxShadow:   ctaDisabled ? "none" : `4px 4px 0px 0px ${TAN_DK}`,
           }}
         >
           {ctaLabel}
