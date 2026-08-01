@@ -58,7 +58,7 @@ async function getPurchases(): Promise<PurchasesType | null> {
 
 // ── Initialization ────────────────────────────────────────────────────────────
 
-export function initializeRevenueCat(): void {
+export function initializeRevenueCat(): Promise<void> {
   _rcReadyPromise = (async () => {
     const Purchases = await getPurchases();
     if (!Purchases) return;
@@ -70,11 +70,21 @@ export function initializeRevenueCat(): void {
       await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
     } catch { /* non-fatal */ }
 
-    await Purchases.configure({ apiKey });
+    // RC Capacitor v13 returns CustomerInfo from configure() — a network call
+    // that can block indefinitely if RC servers are slow. Cap at 5 s; a timeout
+    // here just means CustomerInfo arrives later, not that the SDK is broken.
+    try {
+      await withTimeout(Purchases.configure({ apiKey }), 5000, "Purchases.configure");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (!msg.includes("timed out")) throw e;
+      console.warn("[RevenueCat] configure() timed out waiting for CustomerInfo — SDK is ready");
+    }
     console.log("[RevenueCat] Configured");
   })().catch(err => {
     console.warn("[RevenueCat] Init error (non-fatal):", err);
   });
+  return _rcReadyPromise;
 }
 
 /** Awaitable gate — resolves once Purchases.configure() has finished (or is a no-op on web). */

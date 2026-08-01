@@ -8,16 +8,9 @@ import SavedPage from './pages/saved';
 import FavoritesPage from './pages/favorites';
 import AccountPage from './pages/account';
 import WelcomePage from './pages/welcome';
-import { SubscriptionProvider, initializeRevenueCat } from '@/lib/revenuecat';
+import { SubscriptionProvider } from '@/lib/revenuecat';
 import { queryClient } from '@/lib/queryClient';
 import { BiometricLockProvider } from '@/context/BiometricLockContext';
-
-// ── Initialise RevenueCat once at startup ────────────────────────────────────
-try {
-  initializeRevenueCat();
-} catch (err) {
-  console.warn("[RevenueCat] Init error (non-fatal):", err);
-}
 
 // ── Router base — use root when running inside Capacitor native shell ─────────
 // In Capacitor the WebView loads from capacitor://localhost/ (or file://), so
