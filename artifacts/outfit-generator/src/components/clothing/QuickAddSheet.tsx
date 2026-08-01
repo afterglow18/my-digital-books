@@ -215,6 +215,34 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
     }
   }, [handleFile]);
 
+  // Multi-select from photo library (native only)
+  const handleCapacitorPickImages = useCallback(async () => {
+    try {
+      const result = await Camera.pickImages({
+        quality: 90,
+        correctOrientation: true,
+      });
+      if (!result.photos.length) return;
+      const blobs = await Promise.all(
+        result.photos.map(async (p) => {
+          const url = p.webPath ?? p.path;
+          if (!url) throw new Error("No path returned for photo");
+          const res = await fetch(url);
+          return res.blob();
+        }),
+      );
+      if (blobs.length === 1) {
+        await handleFile(blobs[0]);
+      } else {
+        await handleFiles(blobs.map((b) => new File([b], "photo.jpg", { type: b.type || "image/jpeg" })));
+      }
+    } catch (err: unknown) {
+      if (typeof err === "string" && err.toLowerCase().includes("cancel")) return;
+      if (err instanceof Error && err.message.toLowerCase().includes("cancel")) return;
+      setErrorMsg(`Upload error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, [handleFile, handleFiles]);
+
   if (!open) return null;
 
   const label = names[category as CategoryKey] ?? category;
@@ -282,7 +310,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               <button
                 onClick={() =>
                   Capacitor.isNativePlatform()
-                    ? handleCapacitorPhoto(CameraSource.Photos)
+                    ? handleCapacitorPickImages()
                     : galleryInputRef.current?.click()
                 }
                 className="flex-1 flex flex-col items-center justify-center gap-3 py-8
