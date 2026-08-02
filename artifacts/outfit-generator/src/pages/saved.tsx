@@ -26,13 +26,6 @@ import { useCategoryNames } from "@/hooks/useCategoryNames";
 const SLOT_ORDER = ["outfits", "beauty", "toiletries", "essentials"] as const;
 type SlotKey = (typeof SLOT_ORDER)[number];
 
-const SLOT_LABELS: Record<SlotKey, string> = {
-  outfits:    "Fiction",
-  beauty:     "Non-Fiction",
-  toiletries: "Self-Help",
-  essentials: "Wishlisted",
-};
-
 function ItemPhoto({
   item,
   size = "md",
@@ -222,6 +215,7 @@ export default function SavedPage() {
   const addItemToOutfit = useAddItemToOutfit();
   const queryClient = useQueryClient();
   const { tier } = useEntitlements();
+  const { names: catNames } = useCategoryNames();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [replacingSlot, setReplacingSlot] = useState<{ outfitId: number; category: SlotKey } | null>(null);
   const [addingExtra, setAddingExtra]     = useState<number | null>(null);
@@ -566,7 +560,7 @@ export default function SavedPage() {
                                     <ItemPhoto item={item} size="lg" onClick={() => setDetailsItem(item)} />
                                     <div className="flex items-center justify-between px-0.5">
                                       <span className="text-[8px] font-bold uppercase text-muted-foreground truncate">
-                                        {SLOT_LABELS[slot]}
+                                        {catNames[slot]}
                                       </span>
                                       <button
                                         onClick={() => handleRemoveItem(outfit.id, item.id)}
@@ -585,7 +579,7 @@ export default function SavedPage() {
                                       <Plus className="w-3.5 h-3.5 text-primary/30" />
                                     </button>
                                     <span className="text-[8px] font-bold uppercase text-primary/25 text-center truncate">
-                                      {SLOT_LABELS[slot]}
+                                      {catNames[slot]}
                                     </span>
                                   </>
                                 )}
