@@ -20,17 +20,37 @@ export const DEFAULT_NAMES: Record<CategoryKey, string> = {
 const LS_KEY    = "category-names-v1";
 const EVT_KEY   = "category-names-changed";
 
+// Values written by old builds that used a different default set.
+// If a stored name matches one of these exactly we treat it as
+// "still default" and replace it with the current default.
+const LEGACY_DEFAULTS: Record<CategoryKey, string> = {
+  outfits:    "Fiction",
+  beauty:     "Non-Fiction",
+  toiletries: "Self-Help",
+  essentials: "Wishlisted",
+};
+
+function migrate(value: string | undefined, key: CategoryKey): string {
+  if (!value) return DEFAULT_NAMES[key];
+  // If the stored value is a legacy default, swap in the current default
+  if (value === LEGACY_DEFAULTS[key]) return DEFAULT_NAMES[key];
+  return value;
+}
+
 function load(): Record<CategoryKey, string> {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return { ...DEFAULT_NAMES };
     const parsed = JSON.parse(raw) as Partial<Record<CategoryKey, string>>;
-    return {
-      outfits:    parsed.outfits    || DEFAULT_NAMES.outfits,
-      beauty:     parsed.beauty     || DEFAULT_NAMES.beauty,
-      toiletries: parsed.toiletries || DEFAULT_NAMES.toiletries,
-      essentials: parsed.essentials || DEFAULT_NAMES.essentials,
+    const result: Record<CategoryKey, string> = {
+      outfits:    migrate(parsed.outfits,    "outfits"),
+      beauty:     migrate(parsed.beauty,     "beauty"),
+      toiletries: migrate(parsed.toiletries, "toiletries"),
+      essentials: migrate(parsed.essentials, "essentials"),
     };
+    // Persist the migrated values so the next load is already clean
+    try { localStorage.setItem(LS_KEY, JSON.stringify(result)); } catch {}
+    return result;
   } catch {
     return { ...DEFAULT_NAMES };
   }
