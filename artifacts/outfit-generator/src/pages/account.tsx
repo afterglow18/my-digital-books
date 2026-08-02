@@ -219,15 +219,7 @@ export default function AccountPage() {
             </span>
           </div>
 
-          {isSubscribed ? (
-            <div
-              className="flex items-center gap-2 text-sm font-semibold rounded-lg px-3 py-2"
-              style={{ background: "#E8EEF8", color: "#0D1B38", border: "1px solid #8FA8D4" }}
-            >
-              <Check className="w-4 h-4 shrink-0" />
-              Pro active — unlimited everything
-            </div>
-          ) : (
+          {!isSubscribed && (
             <NavyButton
               onClick={() => setShowUpgrade(true)}
               icon={() => null}
