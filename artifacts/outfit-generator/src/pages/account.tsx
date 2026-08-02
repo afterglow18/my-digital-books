@@ -156,6 +156,7 @@ export default function AccountPage() {
   const handleRestore = async () => {
     try {
       await restore();
+      flash("success", "Purchases restored.");
     } catch (err) {
       flash("error", err instanceof Error ? err.message : "Could not restore");
     }
