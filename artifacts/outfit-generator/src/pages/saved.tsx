@@ -1,14 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
+  useListClothing,
   useListOutfits,
   useDeleteOutfit,
   useRenameOutfit,
   useAddItemToOutfit,
   useRemoveItemFromOutfit,
   getListOutfitsQueryKey,
+  getListClothingQueryKey,
   type ClothingItem,
+  type SavedOutfit,
 } from "@/hooks/useLocalDB";
-import { Trash2, Bookmark, Plus, Pencil, Check, X } from "lucide-react";
+import { Trash2, Bookmark, Plus, Pencil, Check, X, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImageUrl } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,6 +20,8 @@ import { UpgradeSheet } from "@/components/paywall/UpgradeSheet";
 import { FREE_OUTFIT_LIMIT } from "@/lib/entitlements";
 import { WardrobePickerSheet } from "@/components/clothing/WardrobePickerSheet";
 import { ItemDetailsSheet } from "@/components/clothing/ItemDetailsSheet";
+import { useSearch } from "@/hooks/useSearch";
+import { useCategoryNames } from "@/hooks/useCategoryNames";
 
 const SLOT_ORDER = ["outfits", "beauty", "toiletries", "essentials"] as const;
 type SlotKey = (typeof SLOT_ORDER)[number];
@@ -63,6 +68,152 @@ function ItemPhoto({
   );
 }
 
+// ── Mini thumbnail for search results ────────────────────────────────────────
+
+function MiniThumb({ item }: { item: ClothingItem }) {
+  return (
+    <div
+      className="w-10 h-10 border-2 border-black rounded overflow-hidden flex-shrink-0"
+      style={{ background: "#F5EDD8" }}
+    >
+      {item.imageObjectPath ? (
+        <img
+          src={getImageUrl(item.imageObjectPath)!}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <span className="text-[8px] text-black/25">—</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Search results panel ──────────────────────────────────────────────────────
+
+function SearchResults({
+  query,
+  onItemTap,
+  onGroupTap,
+}: {
+  query: string;
+  onItemTap: (item: ClothingItem) => void;
+  onGroupTap: (group: SavedOutfit) => void;
+}) {
+  const results    = useSearch(query);
+  const { names }  = useCategoryNames();
+
+  if (!results) return null;
+
+  const { items, groups } = results;
+  const hasItems  = items.length > 0;
+  const hasGroups = groups.length > 0;
+  const nothing   = !hasItems && !hasGroups;
+
+  if (nothing) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center py-16 px-8">
+        <p className="text-3xl mb-3">🔍</p>
+        <p className="font-display font-bold text-lg uppercase tracking-tight mb-1">No results</p>
+        <p className="text-sm text-muted-foreground">Try a different word or check spelling.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      {hasItems && (
+        <section>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 mb-2">
+            Books ({items.length})
+          </p>
+          <div className="flex flex-col divide-y-2 divide-black border-2 border-black rounded-xl overflow-hidden bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            {items.map((item) => {
+              const catLabel = names[item.category as keyof typeof names] ?? item.category;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onItemTap(item)}
+                  className="flex items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/20 active:bg-secondary/40 transition-colors"
+                >
+                  <MiniThumb item={item} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm truncate">{item.name || "Untitled"}</p>
+                    {item.brand && (
+                      <p className="text-xs text-black/40 truncate">{item.brand}</p>
+                    )}
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wide bg-primary/10 border border-primary/20 text-primary rounded-full px-2 py-0.5 flex-shrink-0">
+                    {catLabel}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {hasGroups && (
+        <section>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 mb-2">
+            Lists ({groups.length})
+          </p>
+          <div className="flex flex-col gap-3">
+            {groups.map((group) => {
+              const thumbs = (group.items ?? []).slice(0, 3);
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => onGroupTap(group)}
+                  className="flex items-center gap-3 px-3 py-3 bg-white border-2 border-black
+                             rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                             hover:bg-secondary/10 active:translate-y-0.5 active:translate-x-0.5
+                             active:shadow-none transition-all text-left w-full"
+                >
+                  <div className="flex gap-1">
+                    {[0, 1, 2].map((i) => {
+                      const it = thumbs[i];
+                      return (
+                        <div
+                          key={i}
+                          className="w-12 h-12 border-2 border-black rounded overflow-hidden flex-shrink-0"
+                          style={{ background: "#F5EDD8" }}
+                        >
+                          {it?.imageObjectPath ? (
+                            <img
+                              src={getImageUrl(it.imageObjectPath)!}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-bold text-base uppercase tracking-tight truncate">
+                      {group.name}
+                    </p>
+                    <p className="text-xs text-black/40">
+                      {group.items?.length ?? 0} book{(group.items?.length ?? 0) !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function SavedPage() {
   const { data: outfits, isLoading } = useListOutfits();
   const deleteOutfit = useDeleteOutfit();
@@ -81,6 +232,28 @@ export default function SavedPage() {
   const [editingNotesId, setEditingNotesId] = useState<number | null>(null);
   const [notesValue, setNotesValue] = useState("");
   const notesInputRef = useRef<HTMLTextAreaElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // ── Search state ──────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery]   = useState("");
+  const [searchActive, setSearchActive] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const prevQueryLen   = useRef(0);
+
+  const handleSearchChange = (v: string) => {
+    // Scroll to top on first keystroke
+    if (prevQueryLen.current === 0 && v.length > 0) {
+      scrollRef.current?.scrollTo({ top: 0 });
+    }
+    prevQueryLen.current = v.length;
+    setSearchQuery(v);
+  };
+
+  const clearSearch = useCallback(() => {
+    setSearchQuery("");
+    prevQueryLen.current = 0;
+    setSearchActive(false);
+  }, []);
 
   useEffect(() => {
     if (renamingId !== null) renameInputRef.current?.focus();
@@ -159,14 +332,25 @@ export default function SavedPage() {
     setAddingExtra(null);
   };
 
+  const handleGroupTap = (group: SavedOutfit) => {
+    // Clear search and let normal view scroll the user there naturally.
+    clearSearch();
+  };
+
+  const isSearching = searchActive && searchQuery.trim().length > 0;
+
   return (
-    <div className="min-h-full flex flex-col px-4 pb-8 bg-secondary/10 relative" style={{ paddingTop: "max(2rem, env(safe-area-inset-top))" }}>
-      <header className="mb-6">
+    <div
+      ref={scrollRef}
+      className="min-h-full flex flex-col px-4 pb-8 bg-secondary/10 relative overflow-y-auto"
+      style={{ paddingTop: "max(2rem, env(safe-area-inset-top))" }}
+    >
+      <header className="mb-4">
         <h1 className="text-4xl font-display font-bold uppercase tracking-tighter mb-1">My Reads</h1>
         <div className="flex items-center justify-between">
           <p className="font-medium text-muted-foreground text-sm">Your saved lists.</p>
 
-          {isFree && outfitCount > 0 && (
+          {isFree && outfitCount > 0 && !isSearching && (
             <button
               onClick={() => setShowUpgrade(true)}
               className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full
@@ -184,242 +368,301 @@ export default function SavedPage() {
         </div>
       </header>
 
-      {atLimit && !isLoading && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-5 border-2 border-black rounded-xl bg-primary p-4
-                     shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-        >
-          <p className="font-display font-bold text-sm uppercase tracking-tight text-primary-foreground">
-            🔓 Reading list is full
-          </p>
-          <p className="text-xs text-primary/60 mt-1 mb-3 leading-snug">
-            You've saved {FREE_OUTFIT_LIMIT} books — the free limit.
-            Unlock Forever to save unlimited lists.
-          </p>
-          <button
-            onClick={() => setShowUpgrade(true)}
-            className="w-full py-2.5 rounded-lg border-2 border-black bg-black text-white
-                       font-bold uppercase text-xs tracking-wide
-                       shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]
-                       active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
-          >
-            Unlock Forever – $4.99
-          </button>
-        </motion.div>
-      )}
-
-      {isLoading ? (
-        <div className="flex flex-col gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-52 bg-muted animate-pulse border-2 border-black rounded-xl" />
-          ))}
+      {/* ── Search bar ── */}
+      <div className="mb-5">
+        <div className={`flex items-center gap-2 bg-white border-2 border-black rounded-xl px-3 py-2.5
+                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-shadow
+                         ${searchActive ? "ring-2 ring-primary" : ""}`}>
+          <Search className="w-4 h-4 text-black/30 flex-shrink-0" />
+          <input
+            ref={searchInputRef}
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onFocus={() => setSearchActive(true)}
+            placeholder="Search by name, category, or notes..."
+            className="flex-1 text-sm font-medium bg-transparent outline-none
+                       placeholder:text-black/25 placeholder:font-normal"
+          />
+          {searchQuery ? (
+            <button
+              onClick={clearSearch}
+              className="w-5 h-5 rounded-full bg-black/10 flex items-center justify-center
+                         hover:bg-black/20 transition-colors flex-shrink-0"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          ) : searchActive ? (
+            <button
+              onClick={clearSearch}
+              className="text-xs font-bold text-black/40 hover:text-black/70 transition-colors flex-shrink-0"
+            >
+              Cancel
+            </button>
+          ) : null}
         </div>
-      ) : outfits && outfits.length > 0 ? (
-        <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:items-start md:gap-5">
-          {outfits.map((outfit) => {
-            // Group items by category — first match per slot wins
-            const bySlot = (outfit.items ?? []).reduce<Partial<Record<SlotKey, ClothingItem>>>(
-              (acc, item) => {
-                const key = item.category as SlotKey;
-                if (SLOT_ORDER.includes(key) && !acc[key]) acc[key] = item;
-                return acc;
-              },
-              {}
-            );
+      </div>
 
-            // Any items whose category isn't a known slot (e.g. legacy data)
-            const knownIds = new Set(Object.values(bySlot).map((i) => i?.id));
-            const extras = (outfit.items ?? []).filter((i) => !knownIds.has(i.id));
-
-            return (
+      {/* ── Main content: search results OR normal outfit list ── */}
+      <AnimatePresence mode="wait">
+        {isSearching ? (
+          <motion.div
+            key="search-results"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.15 }}
+          >
+            <SearchResults
+              query={searchQuery}
+              onItemTap={(item) => setDetailsItem(item)}
+              onGroupTap={handleGroupTap}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="outfit-list"
+            initial={false}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1 }}
+          >
+            {atLimit && !isLoading && (
               <motion.div
-                key={outfit.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl overflow-hidden"
-                data-testid={`outfit-card-${outfit.id}`}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-5 border-2 border-black rounded-xl bg-primary p-4
+                           shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               >
-                {/* Card header */}
-                <div className="px-4 py-3 border-b-2 border-black flex justify-between items-center bg-primary gap-2">
-                  {renamingId === outfit.id ? (
-                    <form
-                      className="flex-1 flex items-center gap-1"
-                      onSubmit={(e) => { e.preventDefault(); commitRename(outfit.id); }}
-                    >
-                      <input
-                        ref={renameInputRef}
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onBlur={() => commitRename(outfit.id)}
-                        maxLength={60}
-                        className="flex-1 font-display font-bold text-lg uppercase tracking-tight bg-white/60 border-2 border-black rounded-lg px-2 py-0.5 outline-none min-w-0"
-                      />
-                      <button type="submit" className="w-7 h-7 flex items-center justify-center bg-white border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
-                        <Check className="w-3.5 h-3.5" />
-                      </button>
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => startRename(outfit.id, outfit.name)}
-                      className="flex-1 flex items-center gap-1.5 text-left group min-w-0"
-                    >
-                      <h3 className="font-display font-bold text-lg uppercase tracking-tight truncate text-primary-foreground">{outfit.name}</h3>
-                      <Pencil className="w-3 h-3 shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(outfit.id)}
-                    className="w-8 h-8 flex items-center justify-center bg-white border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:translate-x-0.5 active:shadow-none hover:bg-destructive/10 transition-colors shrink-0"
-                    data-testid={`button-delete-outfit-${outfit.id}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                <p className="font-display font-bold text-sm uppercase tracking-tight text-primary-foreground">
+                  🔓 Reading list is full
+                </p>
+                <p className="text-xs text-primary/60 mt-1 mb-3 leading-snug">
+                  You've saved {FREE_OUTFIT_LIMIT} books — the free limit.
+                  Unlock Forever to save unlimited lists.
+                </p>
+                <button
+                  onClick={() => setShowUpgrade(true)}
+                  className="w-full py-2.5 rounded-lg border-2 border-black bg-black text-white
+                             font-bold uppercase text-xs tracking-wide
+                             shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]
+                             active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
+                >
+                  Unlock Forever – $4.99
+                </button>
+              </motion.div>
+            )}
 
-                {/* Notes */}
-                <div className="px-4 py-2 border-b border-black/10">
-                  {editingNotesId === outfit.id ? (
-                    <form onSubmit={(e) => { e.preventDefault(); commitNotes(outfit.id); }} className="flex gap-2">
-                      <textarea
-                        ref={notesInputRef}
-                        value={notesValue}
-                        onChange={(e) => setNotesValue(e.target.value)}
-                        onBlur={() => commitNotes(outfit.id)}
-                        rows={2}
-                        maxLength={300}
-                        placeholder="Add notes…"
-                        className="flex-1 text-xs border-2 border-black rounded-lg px-2 py-1.5 resize-none outline-none focus:ring-2 focus:ring-primary bg-white"
-                      />
-                      <button type="submit" className="self-start w-7 h-7 flex items-center justify-center bg-black text-white border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
-                        <Check className="w-3.5 h-3.5" />
-                      </button>
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => startEditNotes(outfit.id, outfit.notes)}
-                      className="w-full text-left group"
+            {isLoading ? (
+              <div className="flex flex-col gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-52 bg-muted animate-pulse border-2 border-black rounded-xl" />
+                ))}
+              </div>
+            ) : outfits && outfits.length > 0 ? (
+              <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:items-start md:gap-5">
+                {outfits.map((outfit) => {
+                  const bySlot = (outfit.items ?? []).reduce<Partial<Record<SlotKey, ClothingItem>>>(
+                    (acc, item) => {
+                      const key = item.category as SlotKey;
+                      if (SLOT_ORDER.includes(key) && !acc[key]) acc[key] = item;
+                      return acc;
+                    },
+                    {}
+                  );
+
+                  const knownIds = new Set(Object.values(bySlot).map((i) => i?.id));
+                  const extras = (outfit.items ?? []).filter((i) => !knownIds.has(i.id));
+
+                  return (
+                    <motion.div
+                      key={outfit.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl overflow-hidden"
+                      data-testid={`outfit-card-${outfit.id}`}
                     >
-                      {outfit.notes ? (
-                        <p className="text-xs text-primary/60 leading-snug flex items-start gap-1">
-                          <span className="flex-1">{outfit.notes}</span>
-                          <Pencil className="w-3 h-3 shrink-0 mt-0.5 opacity-0 group-hover:opacity-40 transition-opacity" />
-                        </p>
-                      ) : (
-                        <p className="text-xs text-primary/25 italic">Add notes…</p>
-                      )}
-                    </button>
-                  )}
-                </div>
-
-                {/* 4-slot grid: outfits / beauty / toiletries / essentials */}
-                <div className="p-3">
-                  <div className="grid grid-cols-4 gap-2">
-                    {SLOT_ORDER.map((slot) => {
-                      const item = bySlot[slot];
-                      return (
-                        <div key={slot} className="flex flex-col gap-0.5">
-                          {item ? (
-                            <>
-                              <ItemPhoto item={item} size="lg" onClick={() => setDetailsItem(item)} />
-                              <div className="flex items-center justify-between px-0.5">
-                                <span className="text-[8px] font-bold uppercase text-muted-foreground truncate">
-                                  {SLOT_LABELS[slot]}
-                                </span>
-                                <button
-                                  onClick={() => handleRemoveItem(outfit.id, item.id)}
-                                  className="w-3.5 h-3.5 flex items-center justify-center rounded-full bg-black/10 hover:bg-red-100 transition-colors flex-shrink-0"
-                                >
-                                  <X className="w-2.5 h-2.5 text-primary/50" />
-                                </button>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                onClick={() => setReplacingSlot({ outfitId: outfit.id, category: slot })}
-                                className="h-28 w-full border-2 border-dashed border-black/25 rounded flex flex-col items-center justify-center gap-1 hover:border-black/50 hover:bg-black/5 transition-colors"
-                              >
-                                <Plus className="w-3.5 h-3.5 text-primary/30" />
-                              </button>
-                              <span className="text-[8px] font-bold uppercase text-primary/25 text-center truncate">
-                                {SLOT_LABELS[slot]}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* 5 fixed extra slots */}
-                  <div className="mt-3 pt-3 border-t border-black/10">
-                    <p className="text-[8px] font-bold uppercase tracking-widest text-primary/30 mb-2">Extras</p>
-                    <div className="grid grid-cols-5 gap-1.5">
-                      {Array.from({ length: 10 }).map((_, i) => {
-                        const item = extras[i];
-                        return item ? (
-                          <div key={item.id} className="relative flex flex-col gap-0.5">
-                            <button
-                              onClick={() => setDetailsItem(item)}
-                              className="w-full aspect-square border-2 border-black overflow-hidden rounded"
-                              style={{ background: "#F5EDD8" }}
-                            >
-                              {item.imageObjectPath ? (
-                                <img src={getImageUrl(item.imageObjectPath)!} alt={item.name} className="w-full h-full object-contain" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <span className="text-[8px] font-bold text-primary/30">—</span>
-                                </div>
-                              )}
+                      {/* Card header */}
+                      <div className="px-4 py-3 border-b-2 border-black flex justify-between items-center bg-primary gap-2">
+                        {renamingId === outfit.id ? (
+                          <form
+                            className="flex-1 flex items-center gap-1"
+                            onSubmit={(e) => { e.preventDefault(); commitRename(outfit.id); }}
+                          >
+                            <input
+                              ref={renameInputRef}
+                              value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onBlur={() => commitRename(outfit.id)}
+                              maxLength={60}
+                              className="flex-1 font-display font-bold text-lg uppercase tracking-tight bg-white/60 border-2 border-black rounded-lg px-2 py-0.5 outline-none min-w-0"
+                            />
+                            <button type="submit" className="w-7 h-7 flex items-center justify-center bg-white border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                              <Check className="w-3.5 h-3.5" />
                             </button>
-                            {item.isFavorite && (
-                              <span className="absolute top-0 left-0 text-[10px] leading-none z-20 pointer-events-none">⭐</span>
-                            )}
-                            <button
-                              onClick={() => handleRemoveItem(outfit.id, item.id)}
-                              className="absolute -top-1 -right-1 w-4 h-4 bg-white border border-black rounded-full flex items-center justify-center shadow-sm z-10"
-                            >
-                              <X className="w-2 h-2" />
-                            </button>
-                          </div>
+                          </form>
                         ) : (
                           <button
-                            key={`empty-${i}`}
-                            onClick={() => setAddingExtra(outfit.id)}
-                            className="aspect-square border-2 border-dashed border-black/25 rounded flex items-center justify-center hover:border-black/50 hover:bg-black/5 transition-colors"
+                            onClick={() => startRename(outfit.id, outfit.name)}
+                            className="flex-1 flex items-center gap-1.5 text-left group min-w-0"
                           >
-                            <Plus className="w-3 h-3 text-primary/25" />
+                            <h3 className="font-display font-bold text-lg uppercase tracking-tight truncate text-primary-foreground">{outfit.name}</h3>
+                            <Pencil className="w-3 h-3 shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
                           </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
+                        )}
+                        <button
+                          onClick={() => handleDelete(outfit.id)}
+                          className="w-8 h-8 flex items-center justify-center bg-white border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:translate-x-0.5 active:shadow-none hover:bg-destructive/10 transition-colors shrink-0"
+                          data-testid={`button-delete-outfit-${outfit.id}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
 
-                {/* Footer: item count */}
-                <div className="px-3 pb-3">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wide">
-                    {outfit.items?.length ?? 0} product{(outfit.items?.length ?? 0) !== 1 ? "s" : ""}
-                  </span>
+                      {/* Notes */}
+                      <div className="px-4 py-2 border-b border-black/10">
+                        {editingNotesId === outfit.id ? (
+                          <form onSubmit={(e) => { e.preventDefault(); commitNotes(outfit.id); }} className="flex gap-2">
+                            <textarea
+                              ref={notesInputRef}
+                              value={notesValue}
+                              onChange={(e) => setNotesValue(e.target.value)}
+                              onBlur={() => commitNotes(outfit.id)}
+                              rows={2}
+                              maxLength={300}
+                              placeholder="Add notes…"
+                              className="flex-1 text-xs border-2 border-black rounded-lg px-2 py-1.5 resize-none outline-none focus:ring-2 focus:ring-primary bg-white"
+                            />
+                            <button type="submit" className="self-start w-7 h-7 flex items-center justify-center bg-black text-white border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                          </form>
+                        ) : (
+                          <button
+                            onClick={() => startEditNotes(outfit.id, outfit.notes)}
+                            className="w-full text-left group"
+                          >
+                            {outfit.notes ? (
+                              <p className="text-xs text-primary/60 leading-snug flex items-start gap-1">
+                                <span className="flex-1">{outfit.notes}</span>
+                                <Pencil className="w-3 h-3 shrink-0 mt-0.5 opacity-0 group-hover:opacity-40 transition-opacity" />
+                              </p>
+                            ) : (
+                              <p className="text-xs text-primary/25 italic">Add notes…</p>
+                            )}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 4-slot grid */}
+                      <div className="p-3">
+                        <div className="grid grid-cols-4 gap-2">
+                          {SLOT_ORDER.map((slot) => {
+                            const item = bySlot[slot];
+                            return (
+                              <div key={slot} className="flex flex-col gap-0.5">
+                                {item ? (
+                                  <>
+                                    <ItemPhoto item={item} size="lg" onClick={() => setDetailsItem(item)} />
+                                    <div className="flex items-center justify-between px-0.5">
+                                      <span className="text-[8px] font-bold uppercase text-muted-foreground truncate">
+                                        {SLOT_LABELS[slot]}
+                                      </span>
+                                      <button
+                                        onClick={() => handleRemoveItem(outfit.id, item.id)}
+                                        className="w-3.5 h-3.5 flex items-center justify-center rounded-full bg-black/10 hover:bg-red-100 transition-colors flex-shrink-0"
+                                      >
+                                        <X className="w-2.5 h-2.5 text-primary/50" />
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => setReplacingSlot({ outfitId: outfit.id, category: slot })}
+                                      className="h-28 w-full border-2 border-dashed border-black/25 rounded flex flex-col items-center justify-center gap-1 hover:border-black/50 hover:bg-black/5 transition-colors"
+                                    >
+                                      <Plus className="w-3.5 h-3.5 text-primary/30" />
+                                    </button>
+                                    <span className="text-[8px] font-bold uppercase text-primary/25 text-center truncate">
+                                      {SLOT_LABELS[slot]}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Extras */}
+                        <div className="mt-3 pt-3 border-t border-black/10">
+                          <p className="text-[8px] font-bold uppercase tracking-widest text-primary/30 mb-2">Extras</p>
+                          <div className="grid grid-cols-5 gap-1.5">
+                            {Array.from({ length: 10 }).map((_, i) => {
+                              const item = extras[i];
+                              return item ? (
+                                <div key={item.id} className="relative flex flex-col gap-0.5">
+                                  <button
+                                    onClick={() => setDetailsItem(item)}
+                                    className="w-full aspect-square border-2 border-black overflow-hidden rounded"
+                                    style={{ background: "#F5EDD8" }}
+                                  >
+                                    {item.imageObjectPath ? (
+                                      <img src={getImageUrl(item.imageObjectPath)!} alt={item.name} className="w-full h-full object-contain" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center">
+                                        <span className="text-[8px] font-bold text-primary/30">—</span>
+                                      </div>
+                                    )}
+                                  </button>
+                                  {item.isFavorite && (
+                                    <span className="absolute top-0 left-0 text-[10px] leading-none z-20 pointer-events-none">⭐</span>
+                                  )}
+                                  <button
+                                    onClick={() => handleRemoveItem(outfit.id, item.id)}
+                                    className="absolute -top-1 -right-1 w-4 h-4 bg-white border border-black rounded-full flex items-center justify-center shadow-sm z-10"
+                                  >
+                                    <X className="w-2 h-2" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  key={`empty-${i}`}
+                                  onClick={() => setAddingExtra(outfit.id)}
+                                  className="aspect-square border-2 border-dashed border-black/25 rounded flex items-center justify-center hover:border-black/50 hover:bg-black/5 transition-colors"
+                                >
+                                  <Plus className="w-3 h-3 text-primary/25" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="px-3 pb-3">
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wide">
+                          {outfit.items?.length ?? 0} product{(outfit.items?.length ?? 0) !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl mt-8">
+                <div className="w-14 h-14 bg-accent rounded-full flex items-center justify-center border-2 border-black mb-4">
+                  <Bookmark className="w-7 h-7" />
                 </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl mt-8">
-          <div className="w-14 h-14 bg-accent rounded-full flex items-center justify-center border-2 border-black mb-4">
-            <Bookmark className="w-7 h-7" />
-          </div>
-          <h3 className="font-display font-bold text-xl mb-2">No books saved yet.</h3>
-          <p className="text-sm font-medium text-muted-foreground">
-            Head to Books, pick some titles, and save lists you love.
-          </p>
-        </div>
-      )}
+                <h3 className="font-display font-bold text-xl mb-2">No books saved yet.</h3>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Head to Books, pick some titles, and save lists you love.
+                </p>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Upgrade sheet */}
       <AnimatePresence>
@@ -459,13 +702,17 @@ export default function SavedPage() {
         )}
       </AnimatePresence>
 
-      {/* Item details sheet */}
+      {/* Item details sheet — showAddToLookbook from search or list taps */}
       <AnimatePresence>
         {detailsItem && (
           <ItemDetailsSheet
             key={detailsItem.id}
             item={detailsItem}
-            onClose={() => setDetailsItem(null)}
+            onClose={() => {
+              setDetailsItem(null);
+              queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
+            }}
+            showAddToLookbook
           />
         )}
       </AnimatePresence>

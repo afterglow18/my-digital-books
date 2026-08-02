@@ -11,21 +11,32 @@ const CATEGORIES = ["outfits", "beauty", "toiletries", "essentials"] as const;
 
 // ── Clothing items ────────────────────────────────────────────────────────────
 
+/** Ensures vision fields always have safe defaults regardless of DB schema version. */
+function normalize(raw: unknown): ClothingItem {
+  const item = raw as ClothingItem;
+  return {
+    ...item,
+    visionLabels:  item.visionLabels  ?? [],
+    visionText:    item.visionText    ?? [],
+    visionVersion: item.visionVersion ?? 0,
+  };
+}
+
 export async function listClothing(category?: string): Promise<ClothingItem[]> {
   const db   = await getDB();
   const all  = category
     ? await db.getAllFromIndex("clothing_items", "by_category", category)
     : await db.getAll("clothing_items");
 
-  return (all as ClothingItem[]).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return (all as ClothingItem[])
+    .map(normalize)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getClothingItem(id: number): Promise<ClothingItem | null> {
   const db   = await getDB();
   const item = await db.get("clothing_items", id);
-  return (item as ClothingItem) ?? null;
+  return item ? normalize(item) : null;
 }
 
 export async function createClothingItem(data: {

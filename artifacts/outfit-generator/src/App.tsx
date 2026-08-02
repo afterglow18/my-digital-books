@@ -11,6 +11,7 @@ import WelcomePage from './pages/welcome';
 import { SubscriptionProvider } from '@/lib/revenuecat';
 import { queryClient } from '@/lib/queryClient';
 import { BiometricLockProvider } from '@/context/BiometricLockContext';
+import { useVisionIndexer } from '@/hooks/useVisionIndexer';
 
 // ── Router base — use root when running inside Capacitor native shell ─────────
 // In Capacitor the WebView loads from capacitor://localhost/ (or file://), so
@@ -74,9 +75,8 @@ function AppShell() {
   const alreadyEntered            = useRef(hasEntered()).current;
   const [showOverlay, setShowOverlay] = useState(!alreadyEntered);
   const overlayTimer              = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { isIndexing }            = useVisionIndexer();
 
-  // Called when the overlay's exiting animation starts (750 ms after tap).
-  // The curtain expansion takes ~650 ms, so we wait 800 ms before unmounting.
   const handleEnter = useCallback(() => {
     markEntered();
     overlayTimer.current = setTimeout(() => setShowOverlay(false), 800);
@@ -91,6 +91,19 @@ function AppShell() {
 
       {/* Welcome overlay — curtain reveals the app progressively */}
       {showOverlay && <WelcomePage onEnter={handleEnter} />}
+
+      {/* Vision indexer progress hint — only shown after the welcome screen is gone */}
+      {isIndexing && !showOverlay && (
+        <div
+          className="fixed left-0 right-0 flex justify-center z-[200] pointer-events-none"
+          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 72px)" }}
+        >
+          <div className="bg-black/80 text-white text-xs font-bold px-4 py-2 rounded-full
+                          shadow-lg backdrop-blur-sm tracking-wide">
+            📚 Preparing photo search…
+          </div>
+        </div>
+      )}
     </WouterRouter>
   );
 }

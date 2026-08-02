@@ -68,6 +68,39 @@ workflows:
           npx cap add ios
           npx cap sync ios
 
+      - name: Add Vision native plugin to Xcode project
+        script: |
+          # Copy the custom VisionPlugin Swift + ObjC bridge files into the iOS app.
+          # The iOS folder is regenerated from scratch on every build, so we inject
+          # them here after cap sync and use xcodeproj gem to register them in the
+          # .pbxproj so Xcode compiles them as part of the App target.
+          cd artifacts/outfit-generator
+
+          # Source files live in the repo under native/
+          cp native/VisionPlugin.swift ios/App/App/
+          cp native/VisionPlugin.m     ios/App/App/
+
+          # xcodeproj is a CocoaPods dependency — it's always present on Codemagic macOS agents.
+          # Ensure we have the latest version just in case.
+          gem install xcodeproj --no-document 2>/dev/null || true
+
+          ruby << 'RUBY'
+          require 'xcodeproj'
+          project = Xcodeproj::Project.open('ios/App/App.xcodeproj')
+          target  = project.targets.find { |t| t.name == 'App' }
+          group   = project.main_group.find_subpath('App', false)
+
+          ['VisionPlugin.swift', 'VisionPlugin.m'].each do |filename|
+            # Skip if already present (idempotent)
+            next if group.files.any? { |f| f.path == filename }
+            ref = group.new_reference(filename)
+            target.source_build_phase.add_file_reference(ref)
+          end
+
+          project.save
+          puts "✅  VisionPlugin.swift and VisionPlugin.m added to App target"
+          RUBY
+
       - name: Inject app icon
         script: |
           ICONSET="artifacts/outfit-generator/ios/App/App/Assets.xcassets/AppIcon.appiconset"
