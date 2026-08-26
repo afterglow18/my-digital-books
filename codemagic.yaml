@@ -97,8 +97,14 @@ workflows:
             target.source_build_phase.add_file_reference(ref)
           end
 
+          # Ship an iPhone-only app. Capacitor regenerates the Xcode project
+          # on every build, so this must be applied after cap sync.
+          target.build_configurations.each do |config|
+            config.build_settings['TARGETED_DEVICE_FAMILY'] = '1'
+          end
+
           project.save
-          puts "✅  VisionPlugin.swift and VisionPlugin.m added to App target"
+          puts "✅  VisionPlugin.swift and VisionPlugin.m added; iPhone-only target configured"
           RUBY
 
       - name: Inject app icon
@@ -188,6 +194,7 @@ workflows:
             -configuration Release \
             ONLY_ACTIVE_ARCH=NO \
             ARCHS=arm64 \
+            TARGETED_DEVICE_FAMILY=1 \
             DEVELOPMENT_TEAM=2A78MFVCJS \
             CODE_SIGN_STYLE=Manual \
             PROVISIONING_PROFILE_SPECIFIER="My Digital Books AppStore" \
